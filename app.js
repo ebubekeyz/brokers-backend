@@ -74,6 +74,7 @@ app.use('/api/transactions', require('./routes/TransactionRouter'));
 app.use('/api/settings', require('./routes/SettingsRouter'));
 app.use('/api/support-tickets', require('./routes/SupportTicketRouter'));
 app.use('/api/upload-receipt', require('./routes/UploadReceiptRouter'));
+app.use('/api/deposit', require('./routes/DepositRouter'));
 
 
 app.use('/api/upload', uploadRouter);
