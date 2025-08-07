@@ -21,6 +21,6 @@ const WithdrawSchema = new mongoose.Schema({
   },
   requestedAt: { type: Date, default: Date.now },
   processedAt: Date,
-});
+}, {timestamps: true });
 
 module.exports = mongoose.model('Withdraw', WithdrawSchema);
