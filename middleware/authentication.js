@@ -16,7 +16,7 @@ const auth = (req, res, next) => {
       userId,
       role,
       email,
-      firstName,
+      fullName,
       phone,
       kycVerified
  
@@ -26,7 +26,7 @@ const auth = (req, res, next) => {
      userId,
       role,
       email,
-      firstName,
+      fullName,
       phone,
       kycVerified
     };
