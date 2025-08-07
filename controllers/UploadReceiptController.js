@@ -85,7 +85,7 @@ const approveReceiptView = async (req, res) => {
 
         <script>
           async function approve() {
-            await fetch('https://brokers-backend-hbq6.onrender.com/api/upload-receipt/${id}/approve', { method: 'PATCH' });
+            await fetch('https://brokers-backend-hbq6.onrender.com/api/upload-receipt/${id}/approve',{status: 'approved'}, { method: 'PATCH' });
             document.querySelector('.btn').style.display = 'none';
             document.getElementById('message').textContent = '✅ Approved successfully';
           }
