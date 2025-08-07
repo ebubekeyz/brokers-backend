@@ -14,16 +14,24 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+
+// Utility to generate unique transactionId
+const generateTransactionId = () => {
+  return `tnx${Date.now().toString(36)}${Math.floor(Math.random() * 1000)}`;
+};
+
 // Upload Receipt Image and Save
 const uploadReceipt = async (req, res) => {
   if (!req.files || !req.files.image) {
     return res.status(StatusCodes.BAD_REQUEST).json({ msg: 'No image uploaded' });
   }
 
-  const { transactionId, amount } = req.body;
-  if (!transactionId || !amount) {
-    return res.status(StatusCodes.BAD_REQUEST).json({ msg: 'Transaction ID and amount are required' });
+  const { amount } = req.body;
+  if (!amount) {
+    return res.status(StatusCodes.BAD_REQUEST).json({ msg: 'Amount is required' });
   }
+
+  const transactionId = generateTransactionId();
 
   const result = await cloudinary.uploader.upload(req.files.image.tempFilePath, {
     use_filename: true,
