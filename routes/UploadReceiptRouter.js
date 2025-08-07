@@ -6,7 +6,7 @@ const {
   approveReceipt,
   deleteReceipt,
 } = require('../controllers/UploadReceiptController');
-const authenticateUser = require('../middleware/authentication'); // Assumes auth middleware
+
 const auth = require('../middleware/authentication');
 
 router.post('/upload', auth, uploadReceipt);

@@ -22,60 +22,67 @@ const generateTransactionId = () => {
 
 // Upload Receipt Image and Save
 const uploadReceipt = async (req, res) => {
-  if (!req.files || !req.files.image) {
-    return res.status(StatusCodes.BAD_REQUEST).json({ msg: 'No image uploaded' });
-  }
-
-  const { amount } = req.body;
-  if (!amount) {
-    return res.status(StatusCodes.BAD_REQUEST).json({ msg: 'Amount is required' });
-  }
-
-  const transactionId = generateTransactionId();
-
-  const result = await cloudinary.uploader.upload(req.files.image.tempFilePath, {
-    use_filename: true,
-    folder: 'trustunion',
-  });
-
-  fs.unlinkSync(req.files.image.tempFilePath);
-
-  const receipt = await UploadReceipt.create({
-    user: req.user._id,
-    transactionId,
-    amount,
-    receiptUrl: result.secure_url,
-  });
-
-  // Confirm/Cancel URLs
-  const approveUrl = `https://brokers-backend-hbq6.onrender.com/api/upload-receipt/${receipt._id}/approve`;
-  const cancelUrl = `https://brokers-backend-hbq6.onrender.com/api/upload-receipt/${receipt._id}/delete`;
-
-  const mailOptions = {
-    from: `"FinancePro Uploads" <${req.user.email}>`,
-    to: 'smartconcept.cp@gmail.com',
-    subject: 'New Receipt Uploaded - Approve or Reject',
-    html: `
-      <p><strong>User:</strong> ${req.user.name} (${req.user.email})</p>
-      <p><strong>Transaction ID:</strong> ${transactionId}</p>
-      <p><strong>Amount:</strong> ${amount}</p>
-      <p><img src="${result.secure_url}" width="300"/></p>
-      <p>
-        <a href="${approveUrl}" style="padding:10px 20px;background:#28a745;color:#fff;text-decoration:none;border-radius:5px;">Approve</a>
-        <a href="${cancelUrl}" style="padding:10px 20px;background:#dc3545;color:#fff;text-decoration:none;border-radius:5px;margin-left:10px;">Cancel</a>
-      </p>
-    `,
-  };
-
   try {
+    const user = req.user;
+
+    if (!req.files || !req.files.image) {
+      return res.status(StatusCodes.BAD_REQUEST).json({ msg: 'Image is required' });
+    }
+
+    const image = req.files.image;
+
+    const { amount } = req.body;
+
+    if (!amount) {
+      return res.status(StatusCodes.BAD_REQUEST).json({ msg: 'Amount is required' });
+    }
+
+    // Upload image to Cloudinary
+    const result = await cloudinary.uploader.upload(image.tempFilePath, {
+      use_filename: true,
+      folder: 'trustunion',
+    });
+
+    // Delete temp file
+    fs.unlinkSync(image.tempFilePath);
+
+    // Create receipt in DB
+    const receipt = await UploadReceipt.create({
+      user: user._id,
+      transactionId: generateTransactionId(),
+      amount,
+      receiptUrl: result.secure_url,
+    });
+
+    // Send Email to Admin
+    const approveUrl = `https://brokers-backend-hbq6.onrender.com/api/upload-receipt/${receipt._id}/approve`;
+    const cancelUrl = `https://brokers-backend-hbq6.onrender.com/api/upload-receipt/${receipt._id}/delete`;
+
+    const mailOptions = {
+      from: `"FinancePro Uploads" <${user.email}>`,
+      to: 'smartconcept.cp@gmail.com',
+      subject: 'New Receipt Uploaded - Approve or Reject',
+      html: `
+        <p><strong>User:</strong> ${user.name} (${user.email})</p>
+        <p><strong>Transaction ID:</strong> ${receipt.transactionId}</p>
+        <p><strong>Amount:</strong> ${amount}</p>
+        <img src="${result.secure_url}" alt="Receipt" width="300" />
+        <p>
+          <a href="${approveUrl}" style="padding:10px 20px;background:#28a745;color:#fff;text-decoration:none;border-radius:5px;">Approve</a>
+          <a href="${cancelUrl}" style="padding:10px 20px;background:#dc3545;color:#fff;text-decoration:none;border-radius:5px;margin-left:10px;">Cancel</a>
+        </p>
+      `,
+    };
+
     await transporter.sendMail(mailOptions);
+
+    res.status(StatusCodes.CREATED).json({ msg: 'Receipt uploaded successfully', receipt });
+
   } catch (error) {
-    console.error('Email sending error:', error);
+    console.error(error);
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ msg: 'Server error', error: error.message });
   }
-
-  res.status(StatusCodes.CREATED).json({ receipt });
 };
-
 // Get All Receipts
 const getReceipts = async (req, res) => {
   const receipts = await UploadReceipt.find().populate('user', 'fullName email');
