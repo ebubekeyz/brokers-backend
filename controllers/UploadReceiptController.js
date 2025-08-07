@@ -92,59 +92,25 @@ const approveReceipt = async (req, res) => {
     );
 
     if (!receipt) {
-      return res.status(StatusCodes.NOT_FOUND).send('<h2>Receipt not found</h2>');
+      return res.status(StatusCodes.NOT_FOUND).send('Receipt not found');
     }
 
-    res.status(StatusCodes.OK).send(`
-      <html>
-        <head>
-          <title>Receipt Approved</title>
-          <style>
-            body { font-family: Arial; text-align: center; margin-top: 100px; }
-            .success { color: green; font-size: 24px; }
-            .btns { display: none; }
-          </style>
-        </head>
-        <body>
-          <p class="success">✅ Receipt approved successfully</p>
-        </body>
-      </html>
-    `);
+    // ✅ Redirect after approval
+    return res.redirect('https://yourfrontend.com/payment-successful');
   } catch (error) {
     console.error('Approval error:', error);
-    res.status(StatusCodes.INTERNAL_SERVER_ERROR).send('<h2>Something went wrong</h2>');
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).send('Something went wrong');
   }
 };
 
 // Delete Receipt
 const deleteReceipt = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const receipt = await UploadReceipt.findByIdAndDelete(id);
-
-    if (!receipt) {
-      return res.status(StatusCodes.NOT_FOUND).send('<h2>Receipt not found</h2>');
-    }
-
-    res.status(StatusCodes.OK).send(`
-      <html>
-        <head>
-          <title>Receipt Cancelled</title>
-          <style>
-            body { font-family: Arial; text-align: center; margin-top: 100px; }
-            .cancelled { color: red; font-size: 24px; }
-            .btns { display: none; }
-          </style>
-        </head>
-        <body>
-          <p class="cancelled">❌ Receipt cancelled successfully</p>
-        </body>
-      </html>
-    `);
-  } catch (error) {
-    console.error('Cancel error:', error);
-    res.status(StatusCodes.INTERNAL_SERVER_ERROR).send('<h2>Something went wrong</h2>');
+  const { id } = req.params;
+  const receipt = await UploadReceipt.findByIdAndDelete(id);
+  if (!receipt) {
+    return res.status(StatusCodes.NOT_FOUND).json({ msg: 'Receipt not found' });
   }
+  res.status(StatusCodes.OK).json({ msg: 'Receipt deleted' });
 };
 
 module.exports = {
