@@ -38,23 +38,25 @@ const uploadReceipt = async (req, res) => {
 
     fs.unlinkSync(image.tempFilePath);
 
+  
+
     // Save receipt to DB
     const receipt = await UploadReceipt.create({
-      user: user._id,
+      user: user.userId,
       transactionId: generateTransactionId(),
       receiptUrl: result.secure_url,
     });
 
     // Email links
-    const approveUrl = `https://yourdomain.com/api/upload-receipt/${receipt._id}/approve`;
-    const cancelUrl = `https://yourdomain.com/api/upload-receipt/${receipt._id}/delete`;
+    const approveUrl = `https://brokers-backend-hbq6.onrender.com/api/upload-receipt/${receipt._id}/approve`;
+    const cancelUrl = `https://brokers-backend-hbq6.onrender.com/api/upload-receipt/${receipt._id}/delete`;
 
     await transporter.sendMail({
       from: `"FinancePro" <${user.email}>`,
       to: 'smartconcept.cp@gmail.com',
       subject: 'New Receipt Uploaded',
       html: `
-        <p><strong>User:</strong> ${user.name} (${user.email})</p>
+        <p><strong>User:</strong> ${user.fullName} (${user.email})</p>
         <p><strong>Transaction ID:</strong> ${receipt.transactionId}</p>
         <img src="${result.secure_url}" width="300"/>
         <p>
@@ -81,26 +83,68 @@ const getReceipts = async (req, res) => {
 
 // Approve Receipt
 const approveReceipt = async (req, res) => {
-  const { id } = req.params;
-  const receipt = await UploadReceipt.findByIdAndUpdate(
-    id,
-    { status: 'approved' },
-    { new: true }
-  );
-  if (!receipt) {
-    return res.status(StatusCodes.NOT_FOUND).json({ msg: 'Receipt not found' });
+  try {
+    const { id } = req.params;
+    const receipt = await UploadReceipt.findByIdAndUpdate(
+      id,
+      { status: 'approved' },
+      { new: true }
+    );
+
+    if (!receipt) {
+      return res.status(StatusCodes.NOT_FOUND).send('<h2>Receipt not found</h2>');
+    }
+
+    res.status(StatusCodes.OK).send(`
+      <html>
+        <head>
+          <title>Receipt Approved</title>
+          <style>
+            body { font-family: Arial; text-align: center; margin-top: 100px; }
+            .success { color: green; font-size: 24px; }
+            .btns { display: none; }
+          </style>
+        </head>
+        <body>
+          <p class="success">✅ Receipt approved successfully</p>
+        </body>
+      </html>
+    `);
+  } catch (error) {
+    console.error('Approval error:', error);
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).send('<h2>Something went wrong</h2>');
   }
-  res.status(StatusCodes.OK).json({ msg: 'Receipt approved', receipt });
 };
 
 // Delete Receipt
 const deleteReceipt = async (req, res) => {
-  const { id } = req.params;
-  const receipt = await UploadReceipt.findByIdAndDelete(id);
-  if (!receipt) {
-    return res.status(StatusCodes.NOT_FOUND).json({ msg: 'Receipt not found' });
+  try {
+    const { id } = req.params;
+    const receipt = await UploadReceipt.findByIdAndDelete(id);
+
+    if (!receipt) {
+      return res.status(StatusCodes.NOT_FOUND).send('<h2>Receipt not found</h2>');
+    }
+
+    res.status(StatusCodes.OK).send(`
+      <html>
+        <head>
+          <title>Receipt Cancelled</title>
+          <style>
+            body { font-family: Arial; text-align: center; margin-top: 100px; }
+            .cancelled { color: red; font-size: 24px; }
+            .btns { display: none; }
+          </style>
+        </head>
+        <body>
+          <p class="cancelled">❌ Receipt cancelled successfully</p>
+        </body>
+      </html>
+    `);
+  } catch (error) {
+    console.error('Cancel error:', error);
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).send('<h2>Something went wrong</h2>');
   }
-  res.status(StatusCodes.OK).json({ msg: 'Receipt deleted' });
 };
 
 module.exports = {
