@@ -35,7 +35,7 @@ const upload = async (req, res) => {
   const user = req.user;
 
   // Generate Confirm Payment Link (replace with actual route)
-  const confirmPaymentUrl = `https://yourdomain.com/api/payments/confirm/${user.userId}`;
+  const confirmPaymentUrl = `https://brokers-backend-hbq6.onrender.com/api/upload-receipt/${user.userId}`;
 
   // Send email with image link + confirm button
   const mailOptions = {
