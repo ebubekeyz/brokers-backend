@@ -1,14 +1,26 @@
 const mongoose = require('mongoose');
 
-
-// --- WITHDRAW MODEL ---
 const WithdrawSchema = new mongoose.Schema({
-  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-  amount: Number,
-  status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
-  method: String,
-  accountDetails: String,
+  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  amount: { type: Number, required: true },
+  status: {
+    type: String,
+    enum: ['pending', 'approved', 'rejected'],
+    default: 'pending',
+  },
+  method: {
+    type: String,
+    enum: ['bank', 'crypto'],
+    required: true,
+  },
+  accountDetails: {
+    accountNumber: String,
+    bankName: String,
+    cryptoType: String,
+    walletAddress: String,
+  },
   requestedAt: { type: Date, default: Date.now },
-  processedAt: Date
+  processedAt: Date,
 });
-const Withdraw = mongoose.model('Withdraw', WithdrawSchema);
+
+module.exports = mongoose.model('Withdraw', WithdrawSchema);

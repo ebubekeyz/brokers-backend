@@ -1,86 +1,71 @@
 const Withdraw = require('../models/Withdraw');
+const { StatusCodes } = require('http-status-codes');
 
-// Create a new withdrawal request
-exports.createWithdraw = async (req, res) => {
+const createWithdraw = async (req, res) => {
   try {
+    const { amount, method, accountNumber, bankName, cryptoType, walletAddress } = req.body;
+
+    const accountDetails = method === 'bank'
+      ? { accountNumber, bankName }
+      : { cryptoType, walletAddress };
+
     const withdraw = await Withdraw.create({
-      user: req.user._id, // assuming authenticated user
-      amount: req.body.amount,
-      method: req.body.method,
-      accountDetails: req.body.accountDetails
+      user: req.user.userId,
+      amount,
+      method,
+      accountDetails,
     });
-    res.status(201).json(withdraw);
+
+    res.status(StatusCodes.CREATED).json({ withdraw });
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to create withdrawal' });
   }
 };
 
-// Get all withdrawal requests (admin view)
-exports.getAllWithdraws = async (req, res) => {
-  try {
-    const withdraws = await Withdraw.find()
-      .populate('user', 'name email');
-    res.status(200).json(withdraws);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+const getAllWithdraws = async (req, res) => {
+  const withdraws = await Withdraw.find().populate('user').sort({ requestedAt: -1 });
+  res.status(StatusCodes.OK).json({ count: withdraws.length, withdraws });
 };
 
-// Get a specific withdrawal
-exports.getWithdrawById = async (req, res) => {
-  try {
-    const withdraw = await Withdraw.findById(req.params.id)
-      .populate('user', 'name email');
-    if (!withdraw) return res.status(404).json({ error: 'Withdraw not found' });
-    res.status(200).json(withdraw);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+const getUserWithdraws = async (req, res) => {
+  const userId = req.user.userId;
+  const withdraws = await Withdraw.find({ user: userId }).sort({ requestedAt: -1 });
+  res.status(StatusCodes.OK).json({ count: withdraws.length, withdraws });
 };
 
-// Approve a withdrawal
-exports.approveWithdraw = async (req, res) => {
-  try {
-    const withdraw = await Withdraw.findByIdAndUpdate(
-      req.params.id,
-      {
-        status: 'approved',
-        processedAt: new Date()
-      },
-      { new: true }
-    );
-    if (!withdraw) return res.status(404).json({ error: 'Withdraw not found' });
-    res.status(200).json(withdraw);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+const updateWithdrawStatus = async (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
+
+  const withdraw = await Withdraw.findByIdAndUpdate(
+    id,
+    { status, processedAt: new Date() },
+    { new: true }
+  );
+
+  if (!withdraw) {
+    return res.status(StatusCodes.NOT_FOUND).json({ error: 'Withdrawal not found' });
   }
+
+  res.status(StatusCodes.OK).json({ withdraw });
 };
 
-// Reject a withdrawal
-exports.rejectWithdraw = async (req, res) => {
-  try {
-    const withdraw = await Withdraw.findByIdAndUpdate(
-      req.params.id,
-      {
-        status: 'rejected',
-        processedAt: new Date()
-      },
-      { new: true }
-    );
-    if (!withdraw) return res.status(404).json({ error: 'Withdraw not found' });
-    res.status(200).json(withdraw);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+const deleteWithdraw = async (req, res) => {
+  const { id } = req.params;
+
+  const withdraw = await Withdraw.findByIdAndDelete(id);
+
+  if (!withdraw) {
+    return res.status(StatusCodes.NOT_FOUND).json({ error: 'Withdrawal not found' });
   }
+
+  res.status(StatusCodes.OK).json({ msg: 'Withdrawal deleted' });
 };
 
-// Get withdrawals for a specific user (authenticated user)
-exports.getUserWithdraws = async (req, res) => {
-  try {
-    const userId = req.user._id;
-    const withdraws = await Withdraw.find({ user: userId });
-    res.status(200).json(withdraws);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+module.exports = {
+  createWithdraw,
+  getAllWithdraws,
+  getUserWithdraws,
+  updateWithdrawStatus,
+  deleteWithdraw,
 };

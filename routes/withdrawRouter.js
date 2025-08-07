@@ -5,24 +5,14 @@ const router = express.Router();
 
 
 const auth = require('../middleware/authentication.js');
-const controller = require('../controllers/withdrawController');
+const {createWithdraw, getUserWithdraws, getAllWithdraws, updateWithdrawStatus, deleteWithdraw} = require('../controllers/withdrawController');
+// User routes
+router.post('/', auth, createWithdraw);
+router.get('/me', auth, getUserWithdraws);
 
-// User creates a withdrawal request
-router.post('/', auth, controller.createWithdraw);
-
-// Admin gets all withdrawal requests
-router.get('/', auth, controller.getAllWithdraws);
-
-// Admin gets a single withdrawal
-router.get('/:id', auth, controller.getWithdrawById);
-
-// Admin approves a withdrawal
-router.put('/:id/approve', auth, controller.approveWithdraw);
-
-// Admin rejects a withdrawal
-router.put('/:id/reject', auth, controller.rejectWithdraw);
-
-// User gets their own withdrawals
-router.get('/user/me', auth, controller.getUserWithdraws);
+// Admin routes
+router.get('/', auth, getAllWithdraws);
+router.patch('/:id', auth, updateWithdrawStatus);
+router.delete('/:id', auth, deleteWithdraw);
 
 module.exports = router;
