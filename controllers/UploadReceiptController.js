@@ -85,7 +85,7 @@ const approveReceiptView = async (req, res) => {
 
         <script>
           async function approve() {
-            await fetch('/api/upload-receipt/${id}/approve', { method: 'PATCH' });
+            await fetch('https://brokers-backend-hbq6.onrender.com/api/upload-receipt/${id}/approve', { method: 'PATCH' });
             document.querySelector('.btn').style.display = 'none';
             document.getElementById('message').textContent = '✅ Approved successfully';
           }
@@ -115,7 +115,7 @@ const cancelReceiptView = async (req, res) => {
 
         <script>
           async function cancel() {
-            await fetch('/api/upload-receipt/${id}/delete', { method: 'DELETE' });
+            await fetch('https://brokers-backend-hbq6.onrender.com/api/upload-receipt/${id}/delete', { method: 'DELETE' });
             document.querySelector('.btn').style.display = 'none';
             document.getElementById('message').textContent = '❌ Cancelled successfully';
           }
