@@ -4,7 +4,7 @@ const fs = require('fs');
 const cloudinary = require('cloudinary').v2;
 const nodemailer = require('nodemailer');
 
-// Setup Nodemailer
+
 const transporter = nodemailer.createTransport({
   host: process.env.GMAIL_HOST,
   port: process.env.GMAIL_PORT,
@@ -14,28 +14,21 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-
 // Utility to generate unique transactionId
 const generateTransactionId = () => {
   return `tnx${Date.now().toString(36)}${Math.floor(Math.random() * 1000)}`;
 };
 
-// Upload Receipt Image and Save
 const uploadReceipt = async (req, res) => {
   try {
     const user = req.user;
 
+    // Check for uploaded image
     if (!req.files || !req.files.image) {
-      return res.status(StatusCodes.BAD_REQUEST).json({ msg: 'Image is required' });
+      return res.status(StatusCodes.BAD_REQUEST).json({ msg: 'Image file is required' });
     }
 
     const image = req.files.image;
-
-    const { amount } = req.body;
-
-    if (!amount) {
-      return res.status(StatusCodes.BAD_REQUEST).json({ msg: 'Amount is required' });
-    }
 
     // Upload image to Cloudinary
     const result = await cloudinary.uploader.upload(image.tempFilePath, {
@@ -43,46 +36,43 @@ const uploadReceipt = async (req, res) => {
       folder: 'trustunion',
     });
 
-    // Delete temp file
     fs.unlinkSync(image.tempFilePath);
 
-    // Create receipt in DB
+    // Save receipt to DB
     const receipt = await UploadReceipt.create({
       user: user._id,
       transactionId: generateTransactionId(),
-      amount,
       receiptUrl: result.secure_url,
     });
 
-    // Send Email to Admin
-    const approveUrl = `https://brokers-backend-hbq6.onrender.com/api/upload-receipt/${receipt._id}/approve`;
-    const cancelUrl = `https://brokers-backend-hbq6.onrender.com/api/upload-receipt/${receipt._id}/delete`;
+    // Email links
+    const approveUrl = `https://yourdomain.com/api/upload-receipt/${receipt._id}/approve`;
+    const cancelUrl = `https://yourdomain.com/api/upload-receipt/${receipt._id}/delete`;
 
-    const mailOptions = {
-      from: `"FinancePro Uploads" <${user.email}>`,
+    await transporter.sendMail({
+      from: `"FinancePro" <${user.email}>`,
       to: 'smartconcept.cp@gmail.com',
-      subject: 'New Receipt Uploaded - Approve or Reject',
+      subject: 'New Receipt Uploaded',
       html: `
         <p><strong>User:</strong> ${user.name} (${user.email})</p>
         <p><strong>Transaction ID:</strong> ${receipt.transactionId}</p>
-        <p><strong>Amount:</strong> ${amount}</p>
-        <img src="${result.secure_url}" alt="Receipt" width="300" />
+        <img src="${result.secure_url}" width="300"/>
         <p>
-          <a href="${approveUrl}" style="padding:10px 20px;background:#28a745;color:#fff;text-decoration:none;border-radius:5px;">Approve</a>
-          <a href="${cancelUrl}" style="padding:10px 20px;background:#dc3545;color:#fff;text-decoration:none;border-radius:5px;margin-left:10px;">Cancel</a>
+          <a href="${approveUrl}" style="background:#28a745;color:#fff;padding:10px 20px;text-decoration:none;">Approve</a>
+          <a href="${cancelUrl}" style="background:#dc3545;color:#fff;padding:10px 20px;text-decoration:none;margin-left:10px;">Cancel</a>
         </p>
       `,
-    };
-
-    await transporter.sendMail(mailOptions);
+    });
 
     res.status(StatusCodes.CREATED).json({ msg: 'Receipt uploaded successfully', receipt });
 
   } catch (error) {
-    console.error(error);
-    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ msg: 'Server error', error: error.message });
+    console.error('Upload error:', error);
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ msg: 'Upload failed', error: error.message });
   }
 };
+
+
 // Get All Receipts
 const getReceipts = async (req, res) => {
   const receipts = await UploadReceipt.find().populate('user', 'fullName email');

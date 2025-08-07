@@ -16,44 +16,19 @@ const auth = (req, res, next) => {
       userId,
       role,
       email,
-      username,
-      lastName,
       firstName,
-      country,
       phone,
-      accountOwnership,
-      typeOfAccount,
-      identity,
-      occupation,
-      address,
-      maritalStatus,
-      dob,
-      password,
-      idNumber,
-      accountNumber,
-      sortCode,
+      kycVerified
+ 
     } = payload;
 
     req.user = {
-      userId,
+     userId,
       role,
       email,
-      username,
-      lastName,
       firstName,
-      country,
       phone,
-      accountOwnership,
-      typeOfAccount,
-      identity,
-      occupation,
-      address,
-      maritalStatus,
-      dob,
-      password,
-      idNumber,
-      accountNumber,
-      sortCode,
+      kycVerified
     };
     next();
   } catch (error) {
