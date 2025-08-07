@@ -39,6 +39,14 @@ let originUrl =
     ? 'http://localhost:5173'
     : 'https://brokers-real.netlify.app';
 
+
+app.use(
+  helmet({
+    crossOriginResourcePolicy: false,
+  })
+);
+app.use(xss())
+
 app.use(
   cors({
     origin: originUrl,
@@ -50,7 +58,6 @@ app.use(
     crossOriginResourcePolicy: false,
   })
 );
-app.use(xss());
 
 app.use(express.static('./public'));
 app.use(express.json());
