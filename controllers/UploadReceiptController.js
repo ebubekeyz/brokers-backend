@@ -40,8 +40,8 @@ const uploadReceipt = async (req, res) => {
   });
 
   // Confirm/Cancel URLs
-  const approveUrl = `https://yourdomain.com/api/upload-receipt/${receipt._id}/approve`;
-  const cancelUrl = `https://yourdomain.com/api/upload-receipt/${receipt._id}/delete`;
+  const approveUrl = `https://brokers-backend-hbq6.onrender.com/api/upload-receipt/${receipt._id}/approve`;
+  const cancelUrl = `https://brokers-backend-hbq6.onrender.com/api/upload-receipt/${receipt._id}/delete`;
 
   const mailOptions = {
     from: `"FinancePro Uploads" <${req.user.email}>`,
