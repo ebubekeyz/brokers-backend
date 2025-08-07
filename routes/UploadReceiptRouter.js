@@ -3,19 +3,15 @@ const router = express.Router();
 const {
   uploadReceipt,
   getReceipts,
-  approveReceiptAction,
-  approveReceiptView,
-  cancelReceiptAction,
-  cancelReceiptView
+  approveReceipt,
+deleteReceipt
 } = require('../controllers/UploadReceiptController');
 
 const auth = require('../middleware/authentication');
 
 router.post('/upload', auth, uploadReceipt);
 router.get('/', auth, getReceipts);
-router.get('/:id/approve-view', approveReceiptView);
-router.get('/:id/cancel-view', cancelReceiptView);
-router.patch('/:id/approve', approveReceiptAction);
-router.delete('/:id/delete', cancelReceiptAction);
+router.get('/approve/:id', approveReceipt);   // Approve
+router.get('/delete/:id', deleteReceipt);     // Cancel/Delete
 
 module.exports = router;

@@ -4,7 +4,17 @@ const fs = require('fs');
 const cloudinary = require('cloudinary').v2;
 const nodemailer = require('nodemailer');
 
+let originUrl =
+  process.env.NODE_ENV !== 'production'
+    ? 'http://localhost:5173/api/approve'
+        : 'https://brokers-real.netlify.app/approve';
+    
+    let originUrl2 =
+  process.env.NODE_ENV !== 'production'
+    ? 'http://localhost:5173/api/delete'
+    : 'https://brokers-real.netlify.app/delete';
 
+    
 const transporter = nodemailer.createTransport({
   host: process.env.GMAIL_HOST,
   port: process.env.GMAIL_PORT,
@@ -30,9 +40,12 @@ const uploadReceipt = async (req, res) => {
     const image = req.files.image;
     const result = await cloudinary.uploader.upload(image.tempFilePath, {
       use_filename: true,
-      folder: 'trustunion',
+      folder: 'brokers',
     });
     fs.unlinkSync(image.tempFilePath);
+
+
+
 
     const receipt = await UploadReceipt.create({
       user: user.userId,
@@ -40,12 +53,16 @@ const uploadReceipt = async (req, res) => {
       receiptUrl: result.secure_url,
     });
 
-    const approveUrl = `https://brokers-backend-hbq6.onrender.com/api/upload-receipt/${receipt._id}/approve-view`;
-    const cancelUrl = `https://brokers-backend-hbq6.onrender.com/api/upload-receipt/${receipt._id}/cancel-view`;
+   
+    const approveUrl = `https://brokers-real.netlify.app/approve/${receipt._id}`;
+    const cancelUrl = `https://brokers-real.netlify.app/delete/${receipt._id}`;
+
+
+    // console.log(approveUrl, cancelUrl)
 
     await transporter.sendMail({
       from: `"FinancePro" <${user.email}>`,
-      to: 'smartconcept.cp@gmail.com',
+      to: 'ebubeofforjoe@gmail.com',
       subject: 'New Receipt Uploaded',
       html: `
         <p><strong>User:</strong> ${user.fullName} (${user.email})</p>
@@ -65,80 +82,6 @@ const uploadReceipt = async (req, res) => {
   }
 };
 
-const approveReceiptView = async (req, res) => {
-  const { id } = req.params;
-
-  res.send(`
-    <html>
-      <head>
-        <title>Approve Receipt</title>
-        <style>
-          body { font-family: Arial; text-align: center; margin-top: 100px; }
-          .btn { padding: 10px 20px; font-size: 16px; cursor: pointer; }
-          .message { font-size: 18px; margin-top: 20px; color: green; }
-        </style>
-      </head>
-      <body>
-        <h2>Approve this receipt?</h2>
-        <button class="btn" onclick="approve()">Approve</button>
-        <p class="message" id="message"></p>
-
-        <script>
-          async function approve() {
-            await fetch('https://brokers-backend-hbq6.onrender.com/api/upload-receipt/${id}/approve',{status: 'approved'}, { method: 'PATCH' });
-            document.querySelector('.btn').style.display = 'none';
-            document.getElementById('message').textContent = '✅ Approved successfully';
-          }
-        </script>
-      </body>
-    </html>
-  `);
-};
-
-const cancelReceiptView = async (req, res) => {
-  const { id } = req.params;
-
-  res.send(`
-    <html>
-      <head>
-        <title>Cancel Receipt</title>
-        <style>
-          body { font-family: Arial; text-align: center; margin-top: 100px; }
-          .btn { padding: 10px 20px; font-size: 16px; cursor: pointer; }
-          .message { font-size: 18px; margin-top: 20px; color: red; }
-        </style>
-      </head>
-      <body>
-        <h2>Cancel this receipt?</h2>
-        <button class="btn" onclick="cancel()">Cancel</button>
-        <p class="message" id="message"></p>
-
-        <script>
-          async function cancel() {
-            await fetch('https://brokers-backend-hbq6.onrender.com/api/upload-receipt/${id}/delete', { method: 'DELETE' });
-            document.querySelector('.btn').style.display = 'none';
-            document.getElementById('message').textContent = '❌ Cancelled successfully';
-          }
-        </script>
-      </body>
-    </html>
-  `);
-};
-
-const approveReceiptAction = async (req, res) => {
-  const { id } = req.params;
-  const receipt = await UploadReceipt.findByIdAndUpdate(id, { status: 'approved' }, { new: true });
-  if (!receipt) return res.status(404).json({ msg: 'Receipt not found' });
-  res.status(200).json({ msg: 'Receipt approved' });
-};
-
-const cancelReceiptAction = async (req, res) => {
-  const { id } = req.params;
-  const receipt = await UploadReceipt.findByIdAndDelete(id);
-  if (!receipt) return res.status(404).json({ msg: 'Receipt not found' });
-  res.status(200).json({ msg: 'Receipt cancelled' });
-};
-
 const getReceipts = async (req, res) => {
   try {
     const receipts = await UploadReceipt.find().populate('user', 'fullName email');
@@ -150,11 +93,49 @@ const getReceipts = async (req, res) => {
 };
 
 
+const approveReceipt = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const receipt = await UploadReceipt.findById(id);
+    if (!receipt) {
+      return res.status(StatusCodes.NOT_FOUND).json({ msg: 'Receipt not found' });
+    }
+
+    receipt.status = 'approved';
+    await receipt.save();
+
+    res.status(StatusCodes.OK).json({ msg: 'Receipt approved successfully', receipt });
+  } catch (error) {
+    console.error('Approve error:', error);
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ msg: 'Approval failed', error: error.message });
+  }
+};
+
+// Delete/Cancel a receipt
+const deleteReceipt = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const receipt = await UploadReceipt.findById(id);
+    if (!receipt) {
+      return res.status(StatusCodes.NOT_FOUND).json({ msg: 'Receipt not found' });
+    }
+
+    await UploadReceipt.findByIdAndDelete(id);
+
+    res.status(StatusCodes.OK).json({ msg: 'Receipt deleted successfully' });
+  } catch (error) {
+    console.error('Delete error:', error);
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ msg: 'Delete failed', error: error.message });
+  }
+};
+
+
 module.exports = {
   getReceipts,
   uploadReceipt,
-  approveReceiptView,
-  cancelReceiptView,
-  approveReceiptAction,
-  cancelReceiptAction,
+  approveReceipt,
+  deleteReceipt
+ 
 };
