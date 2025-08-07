@@ -5,7 +5,9 @@ const {
   login,
   getCurrentUser,
   getAllUsers,
-  deleteUser
+  deleteUser,
+  editUser,
+  resetPassword
 } = require('../controllers/authController');
 const auth = require('../middleware/authentication.js');
 
@@ -15,7 +17,9 @@ router.post('/login', login);
 
 // Protected routes
 router.get('/me', auth, getCurrentUser);
+router.patch('/reset-password', auth, resetPassword);
 router.get('/', auth, getAllUsers); // optionally add admin check
 router.delete('/:id', auth, deleteUser);
+router.put('/:id', auth, editUser);
 
 module.exports = router;

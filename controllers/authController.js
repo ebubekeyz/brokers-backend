@@ -144,10 +144,54 @@ const deleteUser = async (req, res) => {
 };
 
 
+const editUser = async (req, res) => {
+  const { id } = req.params;
+  const updateFields = req.body;
+
+  const updatedUser = await User.findByIdAndUpdate(id, updateFields, {
+    new: true,
+    runValidators: true,
+  }).select('-password');
+
+  if (!updatedUser) {
+    return res.status(StatusCodes.NOT_FOUND).json({ message: 'User not found' });
+  }
+
+  res.status(StatusCodes.OK).json({ user: updatedUser });
+};
+
+// ✅ Reset password
+const resetPassword = async (req, res) => {
+  const { oldPassword, newPassword } = req.body;
+
+  if (!oldPassword || !newPassword) {
+    throw new BadRequestError('Old and new password are required');
+  }
+
+  const user = await User.findById(req.user.userId);
+  if (!user) {
+    throw new NotFoundError('User not found');
+  }
+
+  const isMatch = await user.comparePassword(oldPassword);
+  if (!isMatch) {
+    throw new UnauthenticatedError('Old password is incorrect');
+  }
+
+  user.password = newPassword;
+  await user.save();
+
+  res.status(StatusCodes.OK).json({ message: 'Password reset successful' });
+};
+
+
+
 module.exports = {
   register,
   login,
   getCurrentUser,
   getAllUsers,
-  deleteUser
+  deleteUser,
+  editUser,
+  resetPassword
 };
