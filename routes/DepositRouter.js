@@ -8,15 +8,15 @@ const {
   rejectDeposit,
 } = require('../controllers/DepositController');
 
-const authenticateUser = require('../middleware/auth');
+const auth = require('../middleware/authentication.js');
 
 router.route('/')
-  .post(authenticateUser, createDeposit)
-  .get(authenticateUser, getUserDeposits);
+  .post(auth, createDeposit)
+  .get(auth, getUserDeposits);
 
-router.route('/admin').get(authenticateUser, getAllDeposits);
+router.route('/admin').get(auth, getAllDeposits);
 
-router.patch('/approve/:id', authenticateUser, approveDeposit);
-router.patch('/reject/:id', authenticateUser, rejectDeposit);
+router.patch('/approve/:id', auth, approveDeposit);
+router.patch('/reject/:id', auth, rejectDeposit);
 
 module.exports = router;
