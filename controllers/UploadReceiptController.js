@@ -1,107 +1,106 @@
 const UploadReceipt = require('../models/UploadReceipt');
+const { StatusCodes } = require('http-status-codes');
+const fs = require('fs');
+const cloudinary = require('cloudinary').v2;
+const nodemailer = require('nodemailer');
 
-// User uploads a receipt
+// Setup Nodemailer
+const transporter = nodemailer.createTransport({
+  host: process.env.GMAIL_HOST,
+  port: process.env.GMAIL_PORT,
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_PASS,
+  },
+});
+
+// Upload Receipt Image and Save
 const uploadReceipt = async (req, res) => {
-  try {
-    const { transactionId, amount, receiptUrl } = req.body;
-    const userId = req.user && req.user._id;
-
-    if (!transactionId || !amount || !receiptUrl) {
-      return res.status(400).json({ message: 'All fields are required.' });
-    }
-
-    const receipt = await UploadReceipt.create({
-      user: userId,
-      transactionId,
-      amount,
-      receiptUrl,
-    });
-
-    res.status(201).json(receipt);
-  } catch (error) {
-    res.status(500).json({ message: 'Upload failed', error: error.message });
+  if (!req.files || !req.files.image) {
+    return res.status(StatusCodes.BAD_REQUEST).json({ msg: 'No image uploaded' });
   }
+
+  const { transactionId, amount } = req.body;
+  if (!transactionId || !amount) {
+    return res.status(StatusCodes.BAD_REQUEST).json({ msg: 'Transaction ID and amount are required' });
+  }
+
+  const result = await cloudinary.uploader.upload(req.files.image.tempFilePath, {
+    use_filename: true,
+    folder: 'trustunion',
+  });
+
+  fs.unlinkSync(req.files.image.tempFilePath);
+
+  const receipt = await UploadReceipt.create({
+    user: req.user._id,
+    transactionId,
+    amount,
+    receiptUrl: result.secure_url,
+  });
+
+  // Confirm/Cancel URLs
+  const approveUrl = `https://yourdomain.com/api/upload-receipt/${receipt._id}/approve`;
+  const cancelUrl = `https://yourdomain.com/api/upload-receipt/${receipt._id}/delete`;
+
+  const mailOptions = {
+    from: `"FinancePro Uploads" <${req.user.email}>`,
+    to: 'smartconcept.cp@gmail.com',
+    subject: 'New Receipt Uploaded - Approve or Reject',
+    html: `
+      <p><strong>User:</strong> ${req.user.name} (${req.user.email})</p>
+      <p><strong>Transaction ID:</strong> ${transactionId}</p>
+      <p><strong>Amount:</strong> ${amount}</p>
+      <p><img src="${result.secure_url}" width="300"/></p>
+      <p>
+        <a href="${approveUrl}" style="padding:10px 20px;background:#28a745;color:#fff;text-decoration:none;border-radius:5px;">Approve</a>
+        <a href="${cancelUrl}" style="padding:10px 20px;background:#dc3545;color:#fff;text-decoration:none;border-radius:5px;margin-left:10px;">Cancel</a>
+      </p>
+    `,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+  } catch (error) {
+    console.error('Email sending error:', error);
+  }
+
+  res.status(StatusCodes.CREATED).json({ receipt });
 };
 
-// Admin: Get all receipts
+// Get All Receipts
 const getReceipts = async (req, res) => {
-  try {
-    const receipts = await UploadReceipt.find().populate('user', 'fullName email');
-    res.status(200).json(receipts);
-  } catch (error) {
-    res.status(500).json({ message: 'Failed to fetch receipts', error: error.message });
-  }
+  const receipts = await UploadReceipt.find().populate('user', 'fullName email');
+  res.status(StatusCodes.OK).json(receipts);
 };
 
-// Admin: Update status of a receipt
-const updateReceiptStatus = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { status } = req.body;
-
-    if (!['approved', 'rejected'].includes(status)) {
-      return res.status(400).json({ message: 'Invalid status' });
-    }
-
-    const updated = await UploadReceipt.findByIdAndUpdate(
-      id,
-      { status },
-      { new: true }
-    );
-
-    if (!updated) {
-      return res.status(404).json({ message: 'Receipt not found' });
-    }
-
-    res.status(200).json(updated);
-  } catch (error) {
-    res.status(500).json({ message: 'Failed to update status', error: error.message });
+// Approve Receipt
+const approveReceipt = async (req, res) => {
+  const { id } = req.params;
+  const receipt = await UploadReceipt.findByIdAndUpdate(
+    id,
+    { status: 'approved' },
+    { new: true }
+  );
+  if (!receipt) {
+    return res.status(StatusCodes.NOT_FOUND).json({ msg: 'Receipt not found' });
   }
+  res.status(StatusCodes.OK).json({ msg: 'Receipt approved', receipt });
 };
 
-// ✅ NEW: Get receipts of logged-in user
-const getUserUploadReceipts = async (req, res) => {
-  try {
-    const userId = req.user._id;
-
-    const receipts = await UploadReceipt.find({ user: userId }).sort({ createdAt: -1 });
-
-    res.status(200).json(receipts);
-  } catch (error) {
-    res.status(500).json({ message: 'Failed to fetch your receipts', error: error.message });
+// Delete Receipt
+const deleteReceipt = async (req, res) => {
+  const { id } = req.params;
+  const receipt = await UploadReceipt.findByIdAndDelete(id);
+  if (!receipt) {
+    return res.status(StatusCodes.NOT_FOUND).json({ msg: 'Receipt not found' });
   }
-};
-
-// ✅ NEW: User edits their uploaded receipt
-const editUserUploadReceipt = async (req, res) => {
-  try {
-    const userId = req.user._id;
-    const { id } = req.params;
-    const { transactionId, amount, receiptUrl } = req.body;
-
-    const receipt = await UploadReceipt.findOne({ _id: id, user: userId });
-
-    if (!receipt) {
-      return res.status(404).json({ message: 'Receipt not found or not yours' });
-    }
-
-    receipt.transactionId = transactionId || receipt.transactionId;
-    receipt.amount = amount || receipt.amount;
-    receipt.receiptUrl = receiptUrl || receipt.receiptUrl;
-    receipt.status = 'pending'; // reset to pending on edit
-
-    await receipt.save();
-
-    res.status(200).json(receipt);
-  } catch (error) {
-    res.status(500).json({ message: 'Failed to update receipt', error: error.message });
-  }
+  res.status(StatusCodes.OK).json({ msg: 'Receipt deleted' });
 };
 
 module.exports = {
   uploadReceipt,
   getReceipts,
-  updateReceiptStatus,
-  getUserUploadReceipts,
-  editUserUploadReceipt,
+  approveReceipt,
+  deleteReceipt,
 };

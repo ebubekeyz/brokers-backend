@@ -1,32 +1,17 @@
 const express = require('express');
+const router = express.Router();
 const {
   uploadReceipt,
   getReceipts,
-    updateReceiptStatus,
-    getUserUploadReceipts,
-  editUserUploadReceipt
+  approveReceipt,
+  deleteReceipt,
 } = require('../controllers/UploadReceiptController');
-const auth = require('../middleware/authentication.js');
+const authenticateUser = require('../middleware/authentication'); // Assumes auth middleware
+const auth = require('../middleware/authentication');
 
-
-const router = express.Router();
-
-// User uploads receipt
-router.post('/', auth, uploadReceipt);
-
-// Admin views all receipts
+router.post('/upload', auth, uploadReceipt);
 router.get('/', auth, getReceipts);
-
-// Admin updates receipt status
-// Admin updates receipt status
-router.patch('/:id/status', auth, updateReceiptStatus);
-
-// User gets own receipts
-router.get('/user', auth, getUserUploadReceipts);
-
-// User edits their own receipt
-router.put('/user/:id', auth, editUserUploadReceipt);
-
-
+router.get('/:id/approve', approveReceipt);
+router.get('/:id/delete', deleteReceipt);
 
 module.exports = router;
