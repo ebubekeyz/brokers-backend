@@ -1,103 +1,68 @@
 const Investment = require('../models/Investment');
-const InvestmentProduct = require('../models/InvestmentProduct');
+const { StatusCodes } = require('http-status-codes');
 
-// Create a new investment
-exports.createInvestment = async (req, res) => {
-  try {
-    const { product, amount, duration } = req.body;
+const createInvestment = async (req, res) => {
+  const userId = req.user.userId;
+  const { investmentType, investmentItem, amount, note } = req.body;
 
-    const investmentProduct = await InvestmentProduct.findById(product);
-    if (!investmentProduct) return res.status(404).json({ error: 'Product not found' });
-
-    if (amount < investmentProduct.minAmount || amount > investmentProduct.maxAmount) {
-      return res.status(400).json({ error: 'Amount out of product range' });
-    }
-
-    if (!investmentProduct.durationOptions.includes(duration)) {
-      return res.status(400).json({ error: 'Invalid duration for this product' });
-    }
-
-    const profitRate = investmentProduct.profitRate;
-    const startDate = new Date();
-    const endDate = new Date(startDate.getTime() + duration * 24 * 60 * 60 * 1000); // Add days
-
-    const investment = await Investment.create({
-      user: req.user._id,
-      product,
-      amount,
-      duration,
-      profitRate,
-      startDate,
-      endDate
-    });
-
-    res.status(201).json(investment);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+  if (!investmentType || !investmentItem || !amount) {
+    return res.status(StatusCodes.BAD_REQUEST).json({ msg: 'Please fill in all required fields' });
   }
+
+  const investment = await Investment.create({
+    user: userId,
+    investmentType,
+    investmentItem,
+    amount,
+    note,
+  });
+
+  res.status(StatusCodes.CREATED).json({ investment });
 };
 
-// Get all investments (admin or user)
-exports.getInvestments = async (req, res) => {
-  try {
-    const query = req.user.role === 'admin' ? {} : { user: req.user._id };
-    const investments = await Investment.find(query).populate('product user');
-    res.status(200).json(investments);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+const getUserInvestments = async (req, res) => {
+  const userId = req.user.userId;
+  const investments = await Investment.find({ user: userId }).sort({ createdAt: -1 });
+  res.status(StatusCodes.OK).json({ investments });
 };
 
-// Get single investment
-exports.getInvestmentById = async (req, res) => {
-  try {
-    const investment = await Investment.findById(req.params.id).populate('product user');
-    if (!investment) return res.status(404).json({ error: 'Investment not found' });
-
-    if (req.user.role !== 'admin' && investment.user._id.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ error: 'Unauthorized' });
-    }
-
-    res.status(200).json(investment);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+const getAllInvestments = async (req, res) => {
+  const investments = await Investment.find().populate('user', 'name email');
+  res.status(StatusCodes.OK).json({ investments });
 };
 
-// Update investment status (admin only)
-exports.updateInvestmentStatus = async (req, res) => {
-  try {
-    if (req.user.role !== 'admin') {
-      return res.status(403).json({ error: 'Access denied' });
-    }
+const approveInvestment = async (req, res) => {
+  const { id } = req.params;
+  const investment = await Investment.findById(id);
 
-    const { status } = req.body;
-    const investment = await Investment.findByIdAndUpdate(
-      req.params.id,
-      { status },
-      { new: true }
-    );
-
-    if (!investment) return res.status(404).json({ error: 'Investment not found' });
-
-    res.status(200).json(investment);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+  if (!investment) {
+    return res.status(StatusCodes.NOT_FOUND).json({ msg: 'Investment not found' });
   }
+
+  investment.status = 'approved';
+  await investment.save();
+
+  res.status(StatusCodes.OK).json({ msg: 'Investment approved successfully', investment });
 };
 
-// Delete investment (admin only)
-exports.deleteInvestment = async (req, res) => {
-  try {
-    if (req.user.role !== 'admin') {
-      return res.status(403).json({ error: 'Access denied' });
-    }
+const rejectInvestment = async (req, res) => {
+  const { id } = req.params;
+  const investment = await Investment.findById(id);
 
-    const deleted = await Investment.findByIdAndDelete(req.params.id);
-    if (!deleted) return res.status(404).json({ error: 'Investment not found' });
-
-    res.status(200).json({ message: 'Investment deleted' });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+  if (!investment) {
+    return res.status(StatusCodes.NOT_FOUND).json({ msg: 'Investment not found' });
   }
+
+  investment.status = 'rejected';
+  await investment.save();
+
+  res.status(StatusCodes.OK).json({ msg: 'Investment rejected successfully', investment });
+};
+
+module.exports = {
+  createInvestment,
+  getUserInvestments,
+  getAllInvestments,
+  approveInvestment,
+  rejectInvestment,
 };

@@ -64,7 +64,7 @@ app.use(express.json());
 app.use(fileUpload({ useTempFiles: true }));
 
 app.use('/api/auth', authRouter);
-app.use('/api/investments', require('./routes/InvestmentRouter'));
+app.use('/api/investment', require('./routes/InvestmentRouter'));
 app.use('/api/investment-products', require('./routes/InvestmentProductRouter'));
 app.use('/api/withdraws', require('./routes/withdrawRouter'));
 app.use('/api/kyc', require('./routes/KycRouter'));
