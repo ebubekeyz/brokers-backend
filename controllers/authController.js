@@ -13,8 +13,10 @@ const getAccountBalance = async (req, res) => {
 
   try {
     // Get all successful deposits
-    const deposits = await Deposit.find({ user: userId, status: "approved" });
+    const deposits = await Deposit.find({ user: userId, status: "Approved" });
+   
     const totalFunded = deposits.reduce((acc, curr) => acc + curr.amount, 0);
+
 
     // Get all investments
     const investments = await Investment.find({ user: userId });
@@ -24,6 +26,7 @@ const getAccountBalance = async (req, res) => {
     // Get all approved withdrawals
     const withdraw = await Withdraw.find({ user: userId, status: "approved" });
     const totalWithdrawn = withdraw.reduce((acc, curr) => acc + curr.amount, 0);
+         
 
     // Calculate balance
     const balance = (totalFunded + totalProfit) - (totalInvested + totalWithdrawn);
