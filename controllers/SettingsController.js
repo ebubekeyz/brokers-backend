@@ -1,60 +1,26 @@
-const Settings = require('../models/Settings');
+const Setting = require("../models/Setting");
 
-// Create or update settings (admin or user-specific)
-exports.createOrUpdateSettings = async (req, res) => {
-  try {
-    const { companyAddress, withdrawalLimit, maintenanceMode, supportEmail } = req.body;
+// GET single settings
+const getSettings = async (req, res) => {
+  const settings = await Setting.findOne();
+  res.status(200).json({ settings });
+};
 
-    let query = req.user.role === 'admin' ? { user: null } : { user: req.user._id };
-    let settings = await Settings.findOne(query);
+// PATCH update settings
+const updateSettings = async (req, res) => {
+  let settings = await Setting.findOne();
 
-    if (settings) {
-      settings.companyAddress = companyAddress ?? settings.companyAddress;
-      settings.withdrawalLimit = withdrawalLimit ?? settings.withdrawalLimit;
-      settings.maintenanceMode = maintenanceMode ?? settings.maintenanceMode;
-      settings.supportEmail = supportEmail ?? settings.supportEmail;
-    } else {
-      settings = new Settings({
-        user: req.user.role === 'admin' ? null : req.user._id,
-        companyAddress,
-        withdrawalLimit,
-        maintenanceMode,
-        supportEmail
-      });
-    }
-
+  if (!settings) {
+    settings = await Setting.create(req.body);
+  } else {
+    settings.set(req.body);
     await settings.save();
-    res.status(200).json(settings);
-  } catch (error) {
-    res.status(400).json({ error: error.message });
   }
+
+  res.status(200).json({ msg: "Settings updated successfully", settings });
 };
 
-// Get settings (admin sees global, user sees their own if set)
-exports.getSettings = async (req, res) => {
-  try {
-    const query = req.user.role === 'admin' ? { user: null } : { user: req.user._id };
-    const settings = await Settings.findOne(query);
-
-    if (!settings) {
-      return res.status(404).json({ error: 'Settings not found' });
-    }
-
-    res.status(200).json(settings);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
-
-// Delete settings (admin or user)
-exports.deleteSettings = async (req, res) => {
-  try {
-    const query = req.user.role === 'admin' ? { user: null } : { user: req.user._id };
-    const deleted = await Settings.findOneAndDelete(query);
-    if (!deleted) return res.status(404).json({ error: 'Settings not found' });
-
-    res.status(200).json({ message: 'Settings deleted successfully' });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+module.exports = {
+  getSettings,
+  updateSettings,
 };

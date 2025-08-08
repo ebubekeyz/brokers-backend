@@ -1,11 +1,12 @@
-const mongoose = require('mongoose');
+// models/Setting.js
+const mongoose = require("mongoose");
 
+const SettingSchema = new mongoose.Schema({
+  companyName: { type: String, required: true },
+  companyAddress: { type: String, required: true },
+  email: { type: String, required: true },
+  phone: { type: String, required: true },
+  currency: { type: String, default: "USD" },
+},{timestamps});
 
-const SettingsSchema = new mongoose.Schema({
-  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: false },
-  companyAddress: String,
-  withdrawalLimit: Number,
-  maintenanceMode: Boolean,
-  supportEmail: String
-});
-const Settings = mongoose.model('Settings', SettingsSchema);
+module.exports = mongoose.model("Setting", SettingSchema);
