@@ -158,16 +158,24 @@ const deleteUser = async (req, res) => {
 const editUser = async (req, res) => {
   try {
     const { id } = req.params;
-    const updateFields = req.body;
+    const updateFields = { ...req.body };
 
-    const updatedUser = await User.findByIdAndUpdate(id, updateFields, {
-      new: true,
-      runValidators: true,
-    }).select('-password');
-
-    if (!updatedUser) {
+    const user = await User.findById(id);
+    if (!user) {
       return res.status(StatusCodes.NOT_FOUND).json({ msg: 'User not found' });
     }
+
+    // Apply accountBalance logic
+    user.accountBalance = req.body.accountBalance ?? user.accountBalance;
+
+    // Apply other fields (if you want to allow update of other fields dynamically)
+    for (const key in updateFields) {
+      if (key !== 'accountBalance' && updateFields[key] !== undefined) {
+        user[key] = updateFields[key];
+      }
+    }
+
+    const updatedUser = await user.save();
 
     res.status(StatusCodes.OK).json({ user: updatedUser });
   } catch (error) {
