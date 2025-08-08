@@ -42,14 +42,14 @@ exports.createDeposit = async (req, res) => {
 };
 
 exports.getUserDeposits = async (req, res) => {
-  const deposits = await Deposit.find({ user: req.user.userId }).sort('-createdAt');
+  const deposits = await Deposit.find({ user: req.user.userId }).sort('createdAt');
   res.status(StatusCodes.OK).json({ deposits });
 };
 
 exports.getAllDeposits = async (req, res) => {
   const deposits = await Deposit.find()
     .populate('user', 'fullName email')
-    .sort('-createdAt');
+    .sort('createdAt');
 
   res.status(StatusCodes.OK).json({ deposits });
 };
