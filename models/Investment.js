@@ -22,7 +22,7 @@ const InvestmentSchema = new mongoose.Schema(
     },
     profit: {
       type: Number,
-      default: 0, // Set default to 0 if no profit yet
+      default: 0,
     },
     note: {
       type: String,
@@ -31,6 +31,15 @@ const InvestmentSchema = new mongoose.Schema(
       type: String,
       enum: ['pending', 'approved', 'rejected'],
       default: 'pending',
+    },
+    durationType: {
+      type: String,
+      enum: ['monthly', 'yearly'],
+      required: true,
+    },
+    durationValue: {
+      type: Number,
+      required: true,
     },
   },
   { timestamps: true }

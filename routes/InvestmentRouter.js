@@ -1,6 +1,5 @@
 const express = require('express');
 const router = express.Router();
-
 const {
   createInvestment,
   getUserInvestments,
@@ -8,14 +7,14 @@ const {
   approveInvestment,
   rejectInvestment,
 } = require('../controllers/InvestmentController');
-
-const auth = require('../middleware/authentication.js');
+const auth = require('../middleware/authentication');
 
 router.route('/')
-  .post(auth, createInvestment)
-  .get(auth, getUserInvestments);
+  .post(auth, createInvestment)     // User creates investment
+  .get(auth, getAllInvestments);    // Admin gets all investments
 
-router.route('/admin').get(auth, getAllInvestments);
+router.route('/my-investments')
+  .get(auth, getUserInvestments);   // User gets their investments
 
 router.patch('/approve/:id', auth, approveInvestment);
 router.patch('/reject/:id', auth, rejectInvestment);
