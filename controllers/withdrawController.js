@@ -29,7 +29,7 @@ const getAllWithdraws = async (req, res) => {
 
 const getUserWithdraws = async (req, res) => {
   const userId = req.user.userId;
-  const withdraws = await Withdraw.find({ user: userId }).sort({ requestedAt: -1 });
+  const withdraws = await Withdraw.find({ user: userId });
   res.status(StatusCodes.OK).json({ count: withdraws.length, withdraws });
 };
 
