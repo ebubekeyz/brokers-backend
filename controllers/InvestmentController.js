@@ -35,7 +35,7 @@ const createInvestment = async (req, res) => {
 
 const getUserInvestments = async (req, res) => {
   const userId = req.user.userId;
-  const investments = await Investment.find({ user: userId }).sort({ createdAt: -1 });
+  const investments = await Investment.find({ user: userId });
   res.status(StatusCodes.OK).json({ investments });
 };
 
