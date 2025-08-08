@@ -49,7 +49,7 @@ exports.getUserDeposits = async (req, res) => {
 exports.getAllDeposits = async (req, res) => {
   const deposits = await Deposit.find()
     .populate('user', 'fullName email')
-    .sort('createdAt');
+    .sort('-createdAt');
 
   res.status(StatusCodes.OK).json({ deposits });
 };
