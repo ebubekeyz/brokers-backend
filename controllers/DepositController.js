@@ -1,68 +1,79 @@
 const Deposit = require('../models/Deposit');
+const User = require('../models/User');
 const { StatusCodes } = require('http-status-codes');
 
-const createDeposit = async (req, res) => {
-  const userId = req.user.userId;
-  const { investmentType, investmentItem, amount, note } = req.body;
+// Admin creates deposit for a specific user (via params)
+exports.adminCreateDeposit = async (req, res) => {
+  const { userId } = req.params;
+  const { amount } = req.body;
 
-  if (!investmentType || !investmentItem || !amount) {
-    return res.status(StatusCodes.BAD_REQUEST).json({ msg: 'Please fill in all required fields' });
+  if (!amount) {
+    return res.status(StatusCodes.BAD_REQUEST).json({ msg: 'Amount is required' });
+  }
+
+  const userExists = await User.findById(userId);
+  if (!userExists) {
+    return res.status(StatusCodes.NOT_FOUND).json({ msg: 'User not found' });
   }
 
   const deposit = await Deposit.create({
     user: userId,
-    investmentType,
-    investmentItem,
     amount,
-    note,
+    status: 'Approved', // Optional: admin deposits can be auto-approved
   });
 
-  res.status(StatusCodes.CREATED).json({ deposit });
+  res.status(StatusCodes.CREATED).json({ msg: 'Deposit created for user', deposit });
 };
 
-const getUserDeposits = async (req, res) => {
-  const userId = req.user.userId;
-  const deposits = await Deposit.find({ user: userId }).sort({ createdAt: -1 });
+// Normal user creates deposit for self
+exports.createDeposit = async (req, res) => {
+  const { amount } = req.body;
+
+  if (!amount) {
+    return res.status(StatusCodes.BAD_REQUEST).json({ msg: 'Amount is required' });
+  }
+
+  const deposit = await Deposit.create({
+    user: req.user.userId,
+    amount,
+  });
+
+  res.status(StatusCodes.CREATED).json({ msg: 'Deposit created successfully', deposit });
+};
+
+exports.getUserDeposits = async (req, res) => {
+  const deposits = await Deposit.find({ user: req.user.userId }).sort('-createdAt');
   res.status(StatusCodes.OK).json({ deposits });
 };
 
-const getAllDeposits = async (req, res) => {
-  const deposits = await Deposit.find().populate('user', 'name email');
+exports.getAllDeposits = async (req, res) => {
+  const deposits = await Deposit.find()
+    .populate('user', 'fullName email')
+    .sort('-createdAt');
+
   res.status(StatusCodes.OK).json({ deposits });
 };
 
-const approveDeposit = async (req, res) => {
-  const { id } = req.params;
-  const deposit = await Deposit.findById(id);
-
+exports.approveDeposit = async (req, res) => {
+  const deposit = await Deposit.findById(req.params.id);
   if (!deposit) {
     return res.status(StatusCodes.NOT_FOUND).json({ msg: 'Deposit not found' });
   }
 
-  deposit.status = 'approved';
+  deposit.status = 'Approved';
   await deposit.save();
 
-  res.status(StatusCodes.OK).json({ msg: 'Deposit approved successfully', deposit });
+  res.status(StatusCodes.OK).json({ msg: 'Deposit approved', deposit });
 };
 
-const rejectDeposit = async (req, res) => {
-  const { id } = req.params;
-  const deposit = await Deposit.findById(id);
-
+exports.rejectDeposit = async (req, res) => {
+  const deposit = await Deposit.findById(req.params.id);
   if (!deposit) {
     return res.status(StatusCodes.NOT_FOUND).json({ msg: 'Deposit not found' });
   }
 
-  deposit.status = 'rejected';
+  deposit.status = 'Rejected';
   await deposit.save();
 
-  res.status(StatusCodes.OK).json({ msg: 'Deposit rejected successfully', deposit });
-};
-
-module.exports = {
-  createDeposit,
-  getUserDeposits,
-  getAllDeposits,
-  approveDeposit,
-  rejectDeposit,
+  res.status(StatusCodes.OK).json({ msg: 'Deposit rejected', deposit });
 };
