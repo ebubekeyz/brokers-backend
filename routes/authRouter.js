@@ -8,7 +8,8 @@ const {
   deleteUser,
   editUser,
   resetPassword,
-  getSingleUser
+  getSingleUser,
+  getAccountBalance
 } = require('../controllers/authController');
 const auth = require('../middleware/authentication.js');
 
@@ -17,6 +18,7 @@ router.post('/register', register);
 router.post('/login', login);
 
 // Protected routes
+router.get('/account/balance', auth, getAccountBalance);
 router.get('/me', auth, getCurrentUser);
 router.patch('/reset-password', auth, resetPassword);
 router.get('/single/:id', auth, getSingleUser);
