@@ -7,6 +7,6 @@ const SettingSchema = new mongoose.Schema({
   email: { type: String, required: true },
   phone: { type: String, required: true },
   currency: { type: String, default: "USD" },
-},{timestamps});
+},{ timestamps: true });
 
 module.exports = mongoose.model("Setting", SettingSchema);
