@@ -203,7 +203,25 @@ const resetPassword = async (req, res) => {
   }
 };
 
+
+const getSingleUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const user = await User.findById(id).select('-password');
+    if (!user) {
+      return res.status(StatusCodes.NOT_FOUND).json({ msg: 'User not found' });
+    }
+
+    res.status(StatusCodes.OK).json({ user });
+  } catch (error) {
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ msg: error.message });
+  }
+};
+
+
 module.exports = {
+  getSingleUser,
   register,
   login,
   getCurrentUser,
