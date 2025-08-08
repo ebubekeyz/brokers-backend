@@ -62,7 +62,7 @@ const uploadReceipt = async (req, res) => {
 
     await transporter.sendMail({
       from: `"FinancePro" <${user.email}>`,
-      to: 'ebubeofforjoe@gmail.com',
+      to: 'ebubeofforjoseph@gmail.com',
       subject: 'New Receipt Uploaded',
       html: `
         <p><strong>User:</strong> ${user.fullName} (${user.email})</p>
