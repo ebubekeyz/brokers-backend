@@ -62,10 +62,42 @@ const deleteWithdraw = async (req, res) => {
   res.status(StatusCodes.OK).json({ msg: 'Withdrawal deleted' });
 };
 
+
+
+
+// ✨ New: Edit Withdraw
+const editWithdraw = async (req, res) => {
+  const { id } = req.params;
+  const { amount, method, accountNumber, bankName, cryptoType, walletAddress } = req.body;
+
+  const accountDetails = method === 'bank'
+    ? { accountNumber, bankName }
+    : { cryptoType, walletAddress };
+
+  const updatedWithdraw = await Withdraw.findByIdAndUpdate(
+    id,
+    {
+      amount,
+      method,
+      accountDetails,
+      updatedAt: new Date()
+    },
+    { new: true }
+  );
+
+  if (!updatedWithdraw) {
+    return res.status(StatusCodes.NOT_FOUND).json({ error: 'Withdrawal not found' });
+  }
+
+  res.status(StatusCodes.OK).json({ withdraw: updatedWithdraw });
+};
+
+
 module.exports = {
   createWithdraw,
   getAllWithdraws,
   getUserWithdraws,
   updateWithdrawStatus,
   deleteWithdraw,
+  editWithdraw
 };
