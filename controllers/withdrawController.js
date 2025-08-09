@@ -85,34 +85,40 @@ const editWithdraw = async (req, res) => {
     const { id } = req.params;
     const { amount, method, accountNumber, bankName, cryptoType, walletAddress } = req.body;
 
-    // Ensure amount is a number
+    // Validate amount
     const parsedAmount = Number(amount);
-
     if (isNaN(parsedAmount)) {
       return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Invalid amount' });
     }
 
-    let updateFields = {
-      amount: parsedAmount,
-      method,
-      updatedAt: new Date(),
-    };
-
+    // Build accountDetails explicitly
+    let accountDetails = {};
     if (method === 'bank') {
-      updateFields['accountDetails.accountNumber'] = accountNumber || '';
-      updateFields['accountDetails.bankName'] = bankName || '';
-      updateFields['accountDetails.cryptoType'] = '';
-      updateFields['accountDetails.walletAddress'] = '';
+      accountDetails = {
+        accountNumber: accountNumber || '',
+        bankName: bankName || '',
+        cryptoType: '',
+        walletAddress: '',
+      };
     } else if (method === 'crypto') {
-      updateFields['accountDetails.cryptoType'] = cryptoType || '';
-      updateFields['accountDetails.walletAddress'] = walletAddress || '';
-      updateFields['accountDetails.accountNumber'] = '';
-      updateFields['accountDetails.bankName'] = '';
+      accountDetails = {
+        cryptoType: cryptoType || '',
+        walletAddress: walletAddress || '',
+        accountNumber: '',
+        bankName: '',
+      };
     }
 
     const updatedWithdraw = await Withdraw.findByIdAndUpdate(
       id,
-      { $set: updateFields },
+      {
+        $set: {
+          amount: parsedAmount,
+          method,
+          accountDetails,
+          updatedAt: new Date(),
+        },
+      },
       { new: true, runValidators: true }
     );
 
@@ -126,7 +132,6 @@ const editWithdraw = async (req, res) => {
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Server error' });
   }
 };
-
 const deleteSingleWithdraw = async (req, res) => {
   const { id } = req.params;
 
