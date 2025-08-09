@@ -96,4 +96,16 @@ exports.deleteSingleDeposit = async (req, res) => {
 
 
 
+// ✅ Get single deposit by ID
+exports.getSingleDeposit = async (req, res) => {
+  const { id } = req.params;
+
+  const deposit = await Deposit.findById(id).populate('user', 'fullName email');
+  
+  if (!deposit) {
+    return res.status(StatusCodes.NOT_FOUND).json({ msg: 'Deposit not found' });
+  }
+
+  res.status(StatusCodes.OK).json({ deposit });
+};
 
