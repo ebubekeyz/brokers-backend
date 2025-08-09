@@ -109,3 +109,29 @@ exports.getSingleDeposit = async (req, res) => {
   res.status(StatusCodes.OK).json({ deposit });
 };
 
+// Edit Deposit
+exports.editDeposit = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { amount, status, method } = req.body;
+
+    // Find deposit by ID
+    const deposit = await Deposit.findById(id).populate('user', 'fullName email');
+    if (!deposit) {
+      return res.status(StatusCodes.NOT_FOUND).json({ msg: 'Deposit not found' });
+    }
+
+    // Update fields if provided
+    if (amount !== undefined) deposit.amount = amount;
+    if (status !== undefined) deposit.status = status;
+    if (method !== undefined) deposit.method = method;
+
+    // Save updated deposit
+    const updatedDeposit = await deposit.save();
+
+    res.status(StatusCodes.OK).json(updatedDeposit);
+  } catch (error) {
+    console.error(error);
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ msg: 'Failed to update deposit' });
+  }
+};

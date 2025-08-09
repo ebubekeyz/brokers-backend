@@ -109,8 +109,47 @@ const getSingleInvestment = async (req, res) => {
   }
 };
 
+// Edit investment
+const editInvestment = async (req, res) => {
+  const { id } = req.params;
+  const {
+    investmentType,
+    investmentItem,
+    amount,
+    note,
+    durationType,
+    durationValue,
+    profit,
+    status
+  } = req.body;
+
+  try {
+    const investment = await Investment.findById(id);
+
+    if (!investment) {
+      return res.status(StatusCodes.NOT_FOUND).json({ msg: 'Investment not found' });
+    }
+
+    investment.investmentType = investmentType ?? investment.investmentType;
+    investment.investmentItem = investmentItem ?? investment.investmentItem;
+    investment.amount = amount ?? investment.amount;
+    investment.note = note ?? investment.note;
+    investment.durationType = durationType ?? investment.durationType;
+    investment.durationValue = durationValue ?? investment.durationValue;
+    investment.profit = profit ?? investment.profit;
+    investment.status = status ?? investment.status;
+
+    await investment.save();
+
+    res.status(StatusCodes.OK).json({ msg: 'Investment updated successfully', investment });
+  } catch (error) {
+    res.status(StatusCodes.BAD_REQUEST).json({ msg: 'Invalid investment ID' });
+  }
+};
+
 
 module.exports = {
+  editInvestment,
   getSingleInvestment,
   createInvestment,
   getUserInvestments,

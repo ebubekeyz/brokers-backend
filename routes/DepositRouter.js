@@ -9,7 +9,8 @@ const {
   approveDeposit,
   rejectDeposit,
   deleteSingleDeposit,
-  getSingleDeposit
+  getSingleDeposit,
+  editDeposit
 } = require('../controllers/DepositController');
 
 const auth = require('../middleware/authentication');
@@ -28,6 +29,7 @@ router.get('/', auth, getUserDeposits);
 // Admin gets all deposits
 router.get('/admin', auth, getAllDeposits);
 
+router.patch('/:id', auth, editDeposit);
 
 router.route('/:id')
   .get(auth, getSingleDeposit);   // User get single their deposit
