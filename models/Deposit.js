@@ -13,7 +13,7 @@ const DepositSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['Pending', 'Approved', 'Rejected'],
+      enum: ['pending', 'approved', 'rejected'],
       default: 'Pending',
     },
   },

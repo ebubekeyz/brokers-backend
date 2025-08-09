@@ -13,7 +13,7 @@ const getAccountBalance = async (req, res) => {
 
   try {
     // Get all successful deposits
-    const deposits = await Deposit.find({ user: userId, status: "Approved" });
+    const deposits = await Deposit.find({ user: userId, status: "approved" });
    
     const totalFunded = deposits.reduce((acc, curr) => acc + curr.amount, 0);
 
