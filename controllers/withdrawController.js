@@ -102,7 +102,7 @@ const deleteSingleWithdraw = async (req, res) => {
     return res.status(StatusCodes.NOT_FOUND).json({ msg: 'Withdrawal ID not found' });
   }
 
-  await deposit.deleteOne();
+  await withdraw.deleteOne();
 
   res
     .status(StatusCodes.OK)
