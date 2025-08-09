@@ -13,8 +13,7 @@ router.get('/me', auth, getUserWithdraws);
 // Admin routes
 router.get('/', auth, getAllWithdraws);
 
-router.route('/:id')
-  .get(auth, getSingleWithdraw);   // User get single their withdraw
+router.route('/:id').get(auth, getSingleWithdraw);   // User get single their withdraw
 
 router.patch('/:id', auth, updateWithdrawStatus);
 router.delete('/:id', auth, deleteWithdraw);
