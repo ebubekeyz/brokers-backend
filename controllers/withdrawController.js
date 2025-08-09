@@ -37,6 +37,11 @@ const createWithdraw = async (req, res) => {
   }
 };
 
+const getAllWithdraws = async (req, res) => {
+  const withdraws = await Withdraw.find().populate('user', 'fullName email').sort({ requestedAt: -1 });
+  res.status(StatusCodes.OK).json({ count: withdraws.length, withdraws });
+};
+
 const getUserWithdraws = async (req, res) => {
   const userId = req.user.userId;
   const withdraws = await Withdraw.find({ user: userId }).sort({ requestedAt: -1 });
