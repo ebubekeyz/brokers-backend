@@ -65,33 +65,48 @@ const deleteWithdraw = async (req, res) => {
 
 
 
-// ✨ New: Edit Withdraw
 const editWithdraw = async (req, res) => {
-  const { id } = req.params;
-  const { amount, method, accountNumber, bankName, cryptoType, walletAddress } = req.body;
+  try {
+    const { id } = req.params;
+    const { amount, method, accountNumber, bankName, cryptoType, walletAddress } = req.body;
 
-  const accountDetails = method === 'bank'
-    ? { accountNumber, bankName }
-    : { cryptoType, walletAddress };
+    // Explicitly build accountDetails object
+    let accountDetails = {};
+    if (method === 'bank') {
+      accountDetails = {
+        accountNumber: accountNumber || '',
+        bankName: bankName || ''
+      };
+    } else if (method === 'crypto') {
+      accountDetails = {
+        cryptoType: cryptoType || '',
+        walletAddress: walletAddress || ''
+      };
+    }
 
-  const updatedWithdraw = await Withdraw.findByIdAndUpdate(
-    id,
-    {
-      amount,
-      method,
-      accountDetails,
-      updatedAt: new Date()
-    },
-    { new: true }
-  );
+    const updatedWithdraw = await Withdraw.findByIdAndUpdate(
+      id,
+      {
+        $set: {
+          amount,
+          method,
+          accountDetails,
+          updatedAt: new Date()
+        }
+      },
+      { new: true, runValidators: true } // runValidators ensures schema rules are respected
+    );
 
-  if (!updatedWithdraw) {
-    return res.status(StatusCodes.NOT_FOUND).json({ error: 'Withdrawal not found' });
+    if (!updatedWithdraw) {
+      return res.status(StatusCodes.NOT_FOUND).json({ error: 'Withdrawal not found' });
+    }
+
+    res.status(StatusCodes.OK).json({ withdraw: updatedWithdraw });
+  } catch (error) {
+    console.error(error);
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Server error' });
   }
-
-  res.status(StatusCodes.OK).json({ withdraw: updatedWithdraw });
 };
-
 
 const deleteSingleWithdraw = async (req, res) => {
   const { id } = req.params;
