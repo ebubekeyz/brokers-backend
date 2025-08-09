@@ -193,7 +193,6 @@ const adminCreateInvestment = async (req, res) => {
     return res.status(StatusCodes.NOT_FOUND).json({ msg: "User not found" });
   }
 
-  console.log(userId)
   // Create investment - admin-created investments are auto-approved
   try {
     const investment = await Investment.create({
