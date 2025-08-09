@@ -155,13 +155,12 @@ const adminCreateInvestment = async (req, res) => {
     investmentType,
     investmentItem,
     amount,
-    profit,
     note,
     durationType,
     durationValue,
   } = req.body;
 
-  // Validate required fields
+  // Validate required fields (matching your form inputs)
   if (
     !investmentType ||
     !investmentItem ||
@@ -170,53 +169,54 @@ const adminCreateInvestment = async (req, res) => {
     durationValue === undefined
   ) {
     return res.status(StatusCodes.BAD_REQUEST).json({
-      msg: 'investmentType, investmentItem, amount, durationType, and durationValue are required',
+      msg:
+        "investmentType, investmentItem, amount, durationType, and durationValue are required",
     });
   }
 
-  // Check valid enums manually (optional but recommended)
-  const validInvestmentTypes = ['stocks', 'bonds', 'real-estate', 'crypto'];
-  const validDurationTypes = ['monthly', 'yearly'];
+  // Validate enums as per form options
+  const validInvestmentTypes = ["stocks", "bonds", "real-estate", "crypto"];
+  const validDurationTypes = ["monthly", "yearly"];
 
   if (!validInvestmentTypes.includes(investmentType)) {
-    return res.status(StatusCodes.BAD_REQUEST).json({ msg: 'Invalid investmentType' });
+    return res.status(StatusCodes.BAD_REQUEST).json({ msg: "Invalid investmentType" });
   }
+
   if (!validDurationTypes.includes(durationType)) {
-    return res.status(StatusCodes.BAD_REQUEST).json({ msg: 'Invalid durationType' });
+    return res.status(StatusCodes.BAD_REQUEST).json({ msg: "Invalid durationType" });
   }
 
   // Check if user exists
   const userExists = await User.findById(userId);
   if (!userExists) {
-    return res.status(StatusCodes.NOT_FOUND).json({ msg: 'User not found' });
+    return res.status(StatusCodes.NOT_FOUND).json({ msg: "User not found" });
   }
 
-  // Create investment
+  // Create investment - admin-created investments are auto-approved
   try {
     const investment = await Investment.create({
       user: userId,
       investmentType,
       investmentItem,
       amount,
-      profit: profit || 0,
-      note: note || '',
-      status: 'approved', // admin-created investments are auto-approved
+      profit: 0, // profit not part of form, set default 0
+      note: note || "",
+      status: "approved",
       durationType,
       durationValue,
     });
 
     return res
       .status(StatusCodes.CREATED)
-      .json({ msg: 'Investment created for user', investment });
+      .json({ msg: "Investment created for user", investment });
   } catch (error) {
-    console.error('Error creating investment:', error);
+    console.error("Error creating investment:", error);
     return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-      msg: 'Failed to create investment',
+      msg: "Failed to create investment",
       error: error.message,
     });
   }
 };
-
 
 module.exports = {
   editInvestment,
