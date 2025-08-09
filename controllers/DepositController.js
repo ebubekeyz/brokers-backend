@@ -19,7 +19,7 @@ exports.adminCreateDeposit = async (req, res) => {
   const deposit = await Deposit.create({
     user: userId,
     amount,
-    status: 'Approved', // Optional: admin deposits can be auto-approved
+    status: 'approved', // Optional: admin deposits can be auto-approved
   });
 
   res.status(StatusCodes.CREATED).json({ msg: 'Deposit created for user', deposit });
