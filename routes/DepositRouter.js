@@ -8,6 +8,7 @@ const {
   getAllDeposits,
   approveDeposit,
   rejectDeposit,
+  deleteSingleDeposit
 } = require('../controllers/DepositController');
 
 const auth = require('../middleware/authentication');
@@ -27,5 +28,6 @@ router.get('/admin', auth, getAllDeposits);
 // Admin approves/rejects deposit
 router.patch('/approve/:id', auth, approveDeposit);
 router.patch('/reject/:id', auth, rejectDeposit);
+router.delete('/delete/:id', auth, deleteSingleDeposit);
 
 module.exports = router;

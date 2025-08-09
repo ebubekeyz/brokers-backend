@@ -23,7 +23,7 @@ const createWithdraw = async (req, res) => {
 };
 
 const getAllWithdraws = async (req, res) => {
-  const withdraws = await Withdraw.find().populate('user').sort({ requestedAt: -1 });
+  const withdraws = await Withdraw.find().populate('user', 'fullName email').sort({ requestedAt: -1 });
   res.status(StatusCodes.OK).json({ count: withdraws.length, withdraws });
 };
 
@@ -93,11 +93,29 @@ const editWithdraw = async (req, res) => {
 };
 
 
+const deleteSingleWithdraw = async (req, res) => {
+  const { id } = req.params;
+
+  const withdraw = await Withdraw.findById(id);
+
+  if (!withdraw) {
+    return res.status(StatusCodes.NOT_FOUND).json({ msg: 'Withdrawal ID not found' });
+  }
+
+  await deposit.deleteOne();
+
+  res
+    .status(StatusCodes.OK)
+    .json({ msg: 'Withdrawal deleted successfully' });
+};
+
+
 module.exports = {
   createWithdraw,
   getAllWithdraws,
   getUserWithdraws,
   updateWithdrawStatus,
   deleteWithdraw,
-  editWithdraw
+  editWithdraw,
+  deleteSingleWithdraw
 };

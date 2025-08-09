@@ -6,6 +6,7 @@ const {
   getAllInvestments,
   approveInvestment,
   rejectInvestment,
+  deleteSingleInvestment
 } = require('../controllers/InvestmentController');
 const auth = require('../middleware/authentication');
 
@@ -18,5 +19,8 @@ router.route('/my-investments')
 
 router.patch('/approve/:id', auth, approveInvestment);
 router.patch('/reject/:id', auth, rejectInvestment);
+
+router.delete('/delete/:id', auth, deleteSingleInvestment);
+
 
 module.exports = router;

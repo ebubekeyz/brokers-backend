@@ -40,7 +40,7 @@ const getUserInvestments = async (req, res) => {
 };
 
 const getAllInvestments = async (req, res) => {
-  const investments = await Investment.find().populate('user', 'name email');
+  const investments = await Investment.find().populate('user', 'fullName email');
   res.status(StatusCodes.OK).json({ investments });
 };
 
@@ -76,10 +76,28 @@ const rejectInvestment = async (req, res) => {
     .json({ msg: 'Investment rejected successfully', investment });
 };
 
+
+const deleteSingleInvestment = async (req, res) => {
+  const { id } = req.params;
+
+  const investment = await Investment.findById(id);
+
+  if (!investment) {
+    return res.status(StatusCodes.NOT_FOUND).json({ msg: 'Investment not found' });
+  }
+
+  await investment.deleteOne();
+
+  res
+    .status(StatusCodes.OK)
+    .json({ msg: 'Investment deleted successfully' });
+};
+
 module.exports = {
   createInvestment,
   getUserInvestments,
   getAllInvestments,
   approveInvestment,
   rejectInvestment,
+  deleteSingleInvestment
 };

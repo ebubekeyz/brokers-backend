@@ -77,3 +77,19 @@ exports.rejectDeposit = async (req, res) => {
 
   res.status(StatusCodes.OK).json({ msg: 'Deposit rejected', deposit });
 };
+
+exports.deleteSingleDeposit = async (req, res) => {
+  const { id } = req.params;
+
+  const deposit = await Deposit.findById(id);
+
+  if (!deposit) {
+    return res.status(StatusCodes.NOT_FOUND).json({ msg: 'Deposit not found' });
+  }
+
+  await deposit.deleteOne();
+
+  res
+    .status(StatusCodes.OK)
+    .json({ msg: 'Deposit deleted successfully' });
+};
