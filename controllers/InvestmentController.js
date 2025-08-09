@@ -1,4 +1,5 @@
 const Investment = require('../models/Investment');
+const User = require('../models/User');         // <-- import User model
 const { StatusCodes } = require('http-status-codes');
 
 const createInvestment = async (req, res) => {
@@ -192,6 +193,7 @@ const adminCreateInvestment = async (req, res) => {
     return res.status(StatusCodes.NOT_FOUND).json({ msg: "User not found" });
   }
 
+  console.log(userId)
   // Create investment - admin-created investments are auto-approved
   try {
     const investment = await Investment.create({
