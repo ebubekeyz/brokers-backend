@@ -70,31 +70,28 @@ const editWithdraw = async (req, res) => {
     const { id } = req.params;
     const { amount, method, accountNumber, bankName, cryptoType, walletAddress } = req.body;
 
-    // Explicitly build accountDetails object
-    let accountDetails = {};
+    let updateFields = {
+      amount,
+      method,
+      updatedAt: new Date()
+    };
+
     if (method === 'bank') {
-      accountDetails = {
-        accountNumber: accountNumber || '',
-        bankName: bankName || ''
-      };
+      updateFields['accountDetails.accountNumber'] = accountNumber || '';
+      updateFields['accountDetails.bankName'] = bankName || '';
+      updateFields['accountDetails.cryptoType'] = '';
+      updateFields['accountDetails.walletAddress'] = '';
     } else if (method === 'crypto') {
-      accountDetails = {
-        cryptoType: cryptoType || '',
-        walletAddress: walletAddress || ''
-      };
+      updateFields['accountDetails.cryptoType'] = cryptoType || '';
+      updateFields['accountDetails.walletAddress'] = walletAddress || '';
+      updateFields['accountDetails.accountNumber'] = '';
+      updateFields['accountDetails.bankName'] = '';
     }
 
     const updatedWithdraw = await Withdraw.findByIdAndUpdate(
       id,
-      {
-        $set: {
-          amount,
-          method,
-          accountDetails,
-          updatedAt: new Date()
-        }
-      },
-      { new: true, runValidators: true } // runValidators ensures schema rules are respected
+      { $set: updateFields },
+      { new: true, runValidators: true }
     );
 
     if (!updatedWithdraw) {
