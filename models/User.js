@@ -24,8 +24,9 @@ const UserSchema = new mongoose.Schema({
     default: 'user',
   },
   kycVerified: {
-    type: Boolean,
-    default: false,
+    type: String,
+        enum: ['true', 'false'],
+    default: 'false',
   },
   accountBalance: {
     type: Number,
