@@ -138,7 +138,23 @@ const rejectWithdraw = async (req, res) => {
   res.status(StatusCodes.OK).json({ msg: 'Withdrawal rejected', withdraw });
 };
 
+
+// ✅ New: Get Single Withdraw
+const getSingleWithdraw = async (req, res) => {
+  const { id } = req.params;
+
+  const withdraw = await Withdraw.findById(id).populate('user', 'fullName email');
+
+  if (!withdraw) {
+    return res.status(StatusCodes.NOT_FOUND).json({ error: 'Withdrawal not found' });
+  }
+
+  res.status(StatusCodes.OK).json({ withdraw });
+};
+
+
 module.exports = {
+  getSingleWithdraw,
   rejectWithdraw,
   approveWithdraw,
   createWithdraw,

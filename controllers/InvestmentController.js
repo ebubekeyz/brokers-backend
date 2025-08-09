@@ -93,7 +93,25 @@ const deleteSingleInvestment = async (req, res) => {
     .json({ msg: 'Investment deleted successfully' });
 };
 
+const getSingleInvestment = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const investment = await Investment.findById(id).populate('user', 'fullName email');
+
+    if (!investment) {
+      return res.status(StatusCodes.NOT_FOUND).json({ msg: 'Investment not found' });
+    }
+
+    res.status(StatusCodes.OK).json({ investment });
+  } catch (error) {
+    return res.status(StatusCodes.BAD_REQUEST).json({ msg: 'Invalid investment ID' });
+  }
+};
+
+
 module.exports = {
+  getSingleInvestment,
   createInvestment,
   getUserInvestments,
   getAllInvestments,
