@@ -23,11 +23,14 @@ router.post('/admin/:userId', auth, adminCreateDeposit);
 // Logged-in user gets their own deposits
 router.get('/', auth, getUserDeposits);
 
-router.route('/:id')
-  .get(auth, getSingleDeposit);   // User get single their deposit
+
 
 // Admin gets all deposits
 router.get('/admin', auth, getAllDeposits);
+
+
+router.route('/:id')
+  .get(auth, getSingleDeposit);   // User get single their deposit
 
 // Admin approves/rejects deposit
 router.patch('/approve/:id', auth, approveDeposit);
