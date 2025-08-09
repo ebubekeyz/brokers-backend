@@ -70,10 +70,17 @@ const editWithdraw = async (req, res) => {
     const { id } = req.params;
     const { amount, method, accountNumber, bankName, cryptoType, walletAddress } = req.body;
 
+    // Ensure amount is a number
+    const parsedAmount = Number(amount);
+
+    if (isNaN(parsedAmount)) {
+      return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Invalid amount' });
+    }
+
     let updateFields = {
-      amount,
+      amount: parsedAmount,
       method,
-      updatedAt: new Date()
+      updatedAt: new Date(),
     };
 
     if (method === 'bank') {
