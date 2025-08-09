@@ -139,19 +139,29 @@ const rejectWithdraw = async (req, res) => {
 };
 
 
-// ✅ New: Get Single Withdraw
 const getSingleWithdraw = async (req, res) => {
-  const { id } = req.params;
+  try {
+    const { id } = req.params;
 
-  const withdraw = await Withdraw.findById(id).populate('user', 'fullName email');
+    // Find withdrawal by ID and populate user details
+    const withdraw = await Withdraw.findById(id)
+      .populate('user', 'name email') // Get user name and email
+      .select('user amount status method accountDetails requestedAt processedAt createdAt updatedAt');
 
-  if (!withdraw) {
-    return res.status(StatusCodes.NOT_FOUND).json({ error: 'Withdrawal not found' });
+    if (!withdraw) {
+      return res
+        .status(StatusCodes.NOT_FOUND)
+        .json({ msg: 'Withdrawal not found' });
+    }
+
+    res.status(StatusCodes.OK).json({ withdraw });
+  } catch (error) {
+    console.error(error);
+    res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ msg: 'Server error' });
   }
-
-  res.status(StatusCodes.OK).json({ withdraw });
 };
-
 
 module.exports = {
   getSingleWithdraw,
