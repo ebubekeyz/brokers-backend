@@ -110,7 +110,37 @@ const deleteSingleWithdraw = async (req, res) => {
 };
 
 
+// Approve a withdrawal
+const approveWithdraw = async (req, res) => {
+  const withdraw = await Withdraw.findById(req.params.id);
+  if (!withdraw) {
+    return res.status(StatusCodes.NOT_FOUND).json({ msg: 'Withdrawal not found' });
+  }
+
+  withdraw.status = 'approved';
+  withdraw.processedAt = new Date();
+  await withdraw.save();
+
+  res.status(StatusCodes.OK).json({ msg: 'Withdrawal approved', withdraw });
+};
+
+// Reject a withdrawal
+const rejectWithdraw = async (req, res) => {
+  const withdraw = await Withdraw.findById(req.params.id);
+  if (!withdraw) {
+    return res.status(StatusCodes.NOT_FOUND).json({ msg: 'Withdrawal not found' });
+  }
+
+  withdraw.status = 'rejected';
+  withdraw.processedAt = new Date();
+  await withdraw.save();
+
+  res.status(StatusCodes.OK).json({ msg: 'Withdrawal rejected', withdraw });
+};
+
 module.exports = {
+  rejectWithdraw,
+  approveWithdraw,
   createWithdraw,
   getAllWithdraws,
   getUserWithdraws,
