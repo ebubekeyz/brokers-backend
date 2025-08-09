@@ -17,7 +17,7 @@ router.route('/:id').get(auth, getSingleWithdraw);   // User get single their wi
 
 router.patch('/:id', auth, updateWithdrawStatus);
 router.delete('/:id', auth, deleteWithdraw);
-router.patch('/:id', auth, editWithdraw);
+router.put('/:id', auth, editWithdraw);
 router.delete('/delete/:id', auth, deleteSingleWithdraw);
 router.patch('/approve/:id', auth, approveWithdraw);
 router.patch('/reject/:id', auth, rejectWithdraw);
