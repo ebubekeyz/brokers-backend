@@ -8,7 +8,8 @@ const {
   rejectInvestment,
   deleteSingleInvestment,
   getSingleInvestment,
-  editInvestment
+  editInvestment,
+  adminCreateInvestment
 } = require('../controllers/InvestmentController');
 const auth = require('../middleware/authentication');
 
@@ -20,6 +21,8 @@ router.route('/my-investments')
   .get(auth, getUserInvestments);   // User gets their investments
 
   router.patch('/:id', auth, editInvestment);
+
+  router.post('/admin/:userId', auth, adminCreateInvestment);
 
 router.route('/:id')
   .get(auth, getSingleInvestment);   // User get single their investments
