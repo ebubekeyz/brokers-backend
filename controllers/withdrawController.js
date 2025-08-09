@@ -5,9 +5,23 @@ const createWithdraw = async (req, res) => {
   try {
     const { amount, method, accountNumber, bankName, cryptoType, walletAddress } = req.body;
 
-    const accountDetails = method === 'bank'
-      ? { accountNumber, bankName }
-      : { cryptoType, walletAddress };
+    // Build accountDetails explicitly to avoid sending undefined properties
+    let accountDetails = {};
+    if (method === 'bank') {
+      accountDetails = {
+        accountNumber: accountNumber || '',
+        bankName: bankName || '',
+        cryptoType: '',
+        walletAddress: '',
+      };
+    } else if (method === 'crypto') {
+      accountDetails = {
+        cryptoType: cryptoType || '',
+        walletAddress: walletAddress || '',
+        accountNumber: '',
+        bankName: '',
+      };
+    }
 
     const withdraw = await Withdraw.create({
       user: req.user.userId,
@@ -18,13 +32,9 @@ const createWithdraw = async (req, res) => {
 
     res.status(StatusCodes.CREATED).json({ withdraw });
   } catch (error) {
+    console.error(error);
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Failed to create withdrawal' });
   }
-};
-
-const getAllWithdraws = async (req, res) => {
-  const withdraws = await Withdraw.find().populate('user', 'fullName email').sort({ requestedAt: -1 });
-  res.status(StatusCodes.OK).json({ count: withdraws.length, withdraws });
 };
 
 const getUserWithdraws = async (req, res) => {
