@@ -205,17 +205,17 @@ const getSingleWithdraw = async (req, res) => {
 
 const adminCreateWithdraw = async (req, res) => {
   try {
-    const { userId } = req.params; // get userId from route params
+    const { userId } = req.params; // from /admin/withdraw/:userId
     const { amount, method, accountNumber, bankName, cryptoType, walletAddress } = req.body;
 
-    // Ensure required fields
+    // Required fields check
     if (!userId || !amount || !method) {
       return res
         .status(StatusCodes.BAD_REQUEST)
         .json({ error: 'userId, amount, and method are required' });
     }
 
-    // Build accountDetails based on method
+    // Prepare accountDetails based on withdrawal method
     let accountDetails = {};
     if (method === 'bank') {
       accountDetails = {
@@ -233,12 +233,13 @@ const adminCreateWithdraw = async (req, res) => {
       };
     }
 
-    // Create withdrawal for the specified user
+    // Create withdrawal with status automatically set to "approved"
     const withdraw = await Withdraw.create({
       user: userId,
       amount,
       method,
       accountDetails,
+      status: 'approved',
     });
 
     res.status(StatusCodes.CREATED).json({ withdraw });
@@ -249,7 +250,6 @@ const adminCreateWithdraw = async (req, res) => {
       .json({ error: 'Failed to create withdrawal' });
   }
 };
-
 
 module.exports = {
   adminCreateWithdraw,
