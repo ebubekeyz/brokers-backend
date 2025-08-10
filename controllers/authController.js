@@ -285,7 +285,7 @@ const getSingleUser = async (req, res) => {
 
 
 
-export const getAdminStats = async (req, res) => {
+const getAdminStats = async (req, res) => {
   try {
     // Total users
     const totalUsers = await User.countDocuments();
