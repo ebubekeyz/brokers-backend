@@ -1,4 +1,7 @@
 const User = require('../models/User');
+const Withdraw = require('../models/Withdraw');
+const Deposit = require('../models/Deposit');
+const Investment = require('../models/Investment');
 const { StatusCodes } = require('http-status-codes');
 
 
@@ -187,17 +190,28 @@ const deleteUser = async (req, res) => {
   try {
     const { id } = req.params;
 
+    // Check if the user exists
     const user = await User.findById(id);
     if (!user) {
       return res.status(StatusCodes.NOT_FOUND).json({ msg: 'User not found' });
     }
 
+    // Delete all related Withdraw, Investment, and Deposit records
+    await Promise.all([
+      Withdraw.deleteMany({ user: id }),
+      Investment.deleteMany({ user: id }),
+      Deposit.deleteMany({ user: id })
+    ]);
+
+    // Delete the user
     await User.findByIdAndDelete(id);
-    res.status(StatusCodes.OK).json({ msg: 'User deleted successfully' });
+
+    res.status(StatusCodes.OK).json({ msg: 'User and all related records deleted successfully' });
   } catch (error) {
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ msg: error.message });
   }
 };
+
 
 // Edit user
 const editUser = async (req, res) => {
