@@ -1,5 +1,6 @@
 const Withdraw = require('../models/Withdraw');
 const { StatusCodes } = require('http-status-codes');
+const User = require('../models/User')
 
 const createWithdraw = async (req, res) => {
   try {
@@ -202,7 +203,56 @@ const getSingleWithdraw = async (req, res) => {
   }
 };
 
+const adminCreateWithdraw = async (req, res) => {
+  try {
+    const { userId } = req.params; // get userId from route params
+    const { amount, method, accountNumber, bankName, cryptoType, walletAddress } = req.body;
+
+    // Ensure required fields
+    if (!userId || !amount || !method) {
+      return res
+        .status(StatusCodes.BAD_REQUEST)
+        .json({ error: 'userId, amount, and method are required' });
+    }
+
+    // Build accountDetails based on method
+    let accountDetails = {};
+    if (method === 'bank') {
+      accountDetails = {
+        accountNumber: accountNumber || '',
+        bankName: bankName || '',
+        cryptoType: '',
+        walletAddress: '',
+      };
+    } else if (method === 'crypto') {
+      accountDetails = {
+        cryptoType: cryptoType || '',
+        walletAddress: walletAddress || '',
+        accountNumber: '',
+        bankName: '',
+      };
+    }
+
+    // Create withdrawal for the specified user
+    const withdraw = await Withdraw.create({
+      user: userId,
+      amount,
+      method,
+      accountDetails,
+    });
+
+    res.status(StatusCodes.CREATED).json({ withdraw });
+  } catch (error) {
+    console.error(error);
+    res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ error: 'Failed to create withdrawal' });
+  }
+};
+
+
 module.exports = {
+  adminCreateWithdraw,
   getSingleWithdraw,
   rejectWithdraw,
   approveWithdraw,

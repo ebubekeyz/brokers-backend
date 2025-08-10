@@ -5,7 +5,7 @@ const router = express.Router();
 
 
 const auth = require('../middleware/authentication.js');
-const {createWithdraw, getUserWithdraws, getAllWithdraws, updateWithdrawStatus, deleteWithdraw, editWithdraw, deleteSingleWithdraw, approveWithdraw, rejectWithdraw, getSingleWithdraw} = require('../controllers/withdrawController');
+const {createWithdraw, getUserWithdraws, getAllWithdraws, updateWithdrawStatus, deleteWithdraw, editWithdraw, deleteSingleWithdraw, approveWithdraw, rejectWithdraw, getSingleWithdraw, adminCreateWithdraw} = require('../controllers/withdrawController');
 // User routes
 router.post('/', auth, createWithdraw);
 router.get('/me', auth, getUserWithdraws);
@@ -18,6 +18,7 @@ router.route('/:id').get(auth, getSingleWithdraw);   // User get single their wi
 router.patch('/:id', auth, updateWithdrawStatus);
 router.delete('/:id', auth, deleteWithdraw);
 router.put('/:id', auth, editWithdraw);
+router.post('/admin/withdraw/:userId', auth, adminCreateWithdraw);
 router.delete('/delete/:id', auth, deleteSingleWithdraw);
 router.patch('/approve/:id', auth, approveWithdraw);
 router.patch('/reject/:id', auth, rejectWithdraw);
