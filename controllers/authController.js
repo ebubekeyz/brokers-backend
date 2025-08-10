@@ -351,7 +351,7 @@ const getAdminStats = async (req, res) => {
 
 
 
-export const getTransactionStatusStats = async (req, res) => {
+const getTransactionStatusStats = async (req, res) => {
   try {
     // Helper to get counts by status
     const getStatusCounts = async (Model) => {
