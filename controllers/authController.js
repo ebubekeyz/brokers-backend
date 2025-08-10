@@ -351,8 +351,70 @@ const getAdminStats = async (req, res) => {
 
 
 
+export const getTransactionStatusStats = async (req, res) => {
+  try {
+    // Helper to get counts by status
+    const getStatusCounts = async (Model) => {
+      const [approved, pending, rejected] = await Promise.all([
+        Model.countDocuments({ status: "approved" }),
+        Model.countDocuments({ status: "pending" }),
+        Model.countDocuments({ status: "rejected" }),
+      ]);
+      return { approved, pending, rejected };
+    };
+
+    // Helper to get the most recent transaction with user's full name and amount
+    const getRecentTransaction = async (Model) => {
+      const recent = await Model.findOne({})
+        .sort({ createdAt: -1 })
+        .populate("user", "fullName") // assuming the `user` field is a ref to User model
+        .select("amount user");
+
+      return recent
+        ? {
+            fullName: recent.user?.fullName || "Unknown User",
+            amount: recent.amount,
+          }
+        : null;
+    };
+
+    const [
+      depositStats,
+      withdrawalStats,
+      investmentStats,
+      recentDeposit,
+      recentWithdrawal,
+      recentInvestment,
+    ] = await Promise.all([
+      getStatusCounts(Deposit),
+      getStatusCounts(Withdraw),
+      getStatusCounts(Investment),
+      getRecentTransaction(Deposit),
+      getRecentTransaction(Withdraw),
+      getRecentTransaction(Investment),
+    ]);
+
+    res.json({
+      success: true,
+      data: {
+        deposits: depositStats,
+        withdraw: withdrawalStats,
+        investments: investmentStats,
+        recent: {
+          deposit: recentDeposit,
+          withdrawal: recentWithdrawal,
+          investment: recentInvestment,
+        },
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching transaction status stats:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
 
 module.exports = {
+  getTransactionStatusStats,
   getAdminStats,
    getAccountBalance,
   getSingleUser,

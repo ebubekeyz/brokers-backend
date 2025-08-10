@@ -10,7 +10,8 @@ const {
   resetPassword,
   getSingleUser,
   getAccountBalance,
-  getAdminStats
+  getAdminStats,
+  getTransactionStatusStats
 } = require('../controllers/authController');
 const auth = require('../middleware/authentication.js');
 
@@ -19,6 +20,8 @@ router.post('/register', register);
 router.post('/login', login);
 
 router.get("/stats", getAdminStats);
+
+router.get("/transactions", getTransactionStatusStats);
 
 // Protected routes
 router.get('/account/balance', auth, getAccountBalance);
