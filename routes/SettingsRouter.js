@@ -7,7 +7,7 @@ const {
 
 const auth = require('../middleware/authentication.js');
 
-router.get("/", auth, getSettings);
+router.get("/", getSettings);
 router.patch("/update", auth, updateSettings);
 
 module.exports = router;
