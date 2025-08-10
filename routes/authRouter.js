@@ -9,13 +9,16 @@ const {
   editUser,
   resetPassword,
   getSingleUser,
-  getAccountBalance
+  getAccountBalance,
+  getAdminStats
 } = require('../controllers/authController');
 const auth = require('../middleware/authentication.js');
 
 // Public routes
 router.post('/register', register);
 router.post('/login', login);
+
+router.get("/stats", getAdminStats);
 
 // Protected routes
 router.get('/account/balance', auth, getAccountBalance);

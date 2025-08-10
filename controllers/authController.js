@@ -285,10 +285,75 @@ const getSingleUser = async (req, res) => {
 
 
 
+export const getAdminStats = async (req, res) => {
+  try {
+    // Total users
+    const totalUsers = await User.countDocuments();
+
+    // Sum of all transaction amounts
+    const depositsTotal = await Deposit.aggregate([
+      { $group: { _id: null, total: { $sum: "$amount" } } }
+    ]);
+    const withdrawalsTotal = await Withdraw.aggregate([
+      { $group: { _id: null, total: { $sum: "$amount" } } }
+    ]);
+    const investmentsTotal = await Investment.aggregate([
+      { $group: { _id: null, total: { $sum: "$amount" } } }
+    ]);
+
+    const depositsAmount = depositsTotal[0]?.total || 0;
+    const withdrawalsAmount = withdrawalsTotal[0]?.total || 0;
+    const investmentsAmount = investmentsTotal[0]?.total || 0;
+
+    const totalTransactions =
+      depositsAmount + withdrawalsAmount + investmentsAmount;
+
+    // Pending approvals from all three collections
+    const pendingDeposits = await Deposit.countDocuments({ status: "pending" });
+    const pendingWithdrawals = await Withdraw.countDocuments({ status: "pending" });
+    const pendingInvestments = await Investment.countDocuments({ status: "pending" });
+
+    const pendingApprovals =
+      pendingDeposits + pendingWithdrawals + pendingInvestments;
+
+    // Calculate analytics percentages
+    const depositsPercent = totalTransactions
+      ? (depositsAmount / totalTransactions) * 100
+      : 0;
+    const withdrawalsPercent = totalTransactions
+      ? (withdrawalsAmount / totalTransactions) * 100
+      : 0;
+    const investmentsPercent = totalTransactions
+      ? (investmentsAmount / totalTransactions) * 100
+      : 0;
+
+    // Sum of all percentages
+    const analyticsTotalPercent = (
+      depositsPercent +
+      withdrawalsPercent +
+      investmentsPercent
+    ).toFixed(2);
+
+    res.json({
+      success: true,
+      data: {
+        totalUsers,
+        totalTransactions,
+        pendingApprovals,
+        analytics: analyticsTotalPercent
+      }
+    });
+  } catch (error) {
+    console.error("Error getting admin stats:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
 
 
 
 module.exports = {
+  getAdminStats,
    getAccountBalance,
   getSingleUser,
   register,
