@@ -1,7 +1,4 @@
 const User = require('../models/User');
-const Withdraw = require('../models/Withdraw');
-const Deposit = require('../models/Deposit');
-const Investment = require('../models/Investment');
 const { StatusCodes } = require('http-status-codes');
 
 
