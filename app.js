@@ -76,6 +76,22 @@ app.use('/api/support-tickets', require('./routes/SupportTicketRouter'));
 app.use('/api/upload-receipt', require('./routes/UploadReceiptRouter'));
 app.use('/api/deposit', require('./routes/DepositRouter'));
 
+app.get("/order/:id", async (req, res) => {
+  try {
+    const orderId = req.params.id;
+    const response = await axios.get(`https://staging-api.transak.com/api/v2/orders/${orderId}`, {
+      headers: {
+        "apiKey": process.env.TRANSAK_SANDBOX_API_KEY, // from your dashboard
+      },
+    });
+    res.json(response.data);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to fetch order" });
+  }
+});
+
+
 
 app.use('/api/upload', uploadRouter);
 

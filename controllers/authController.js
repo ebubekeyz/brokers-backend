@@ -1,8 +1,18 @@
 const User = require('../models/User');
 const { StatusCodes } = require('http-status-codes');
+const nodemailer = require('nodemailer');
 
 
 
+// Nodemailer setup
+const transporter = nodemailer.createTransport({
+  host: process.env.GMAIL_HOST,
+  port: process.env.GMAIL_PORT,
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_PASS,
+  },
+});
 
 const Deposit = require('../models/Deposit');
 const Investment = require('../models/Investment');
@@ -70,39 +80,87 @@ const register = async (req, res) => {
 // Login existing user
 const login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, otpCode } = req.body;
 
-    if (!email || !password) {
-      return res.status(StatusCodes.BAD_REQUEST).json({ msg: 'Email and password are required' });
+    if (!email) {
+      return res
+        .status(StatusCodes.BAD_REQUEST)
+        .json({ msg: "Email is required" });
     }
 
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(StatusCodes.UNAUTHORIZED).json({ msg: 'Invalid credentials' });
+      return res
+        .status(StatusCodes.UNAUTHORIZED)
+        .json({ msg: "Invalid credentials" });
     }
 
-    const isMatch = await user.comparePassword(password);
-    if (!isMatch) {
-      return res.status(StatusCodes.UNAUTHORIZED).json({ msg: 'Invalid credentials' });
+    // STEP 1: If password is sent, we are in "request OTP" mode
+    if (password && !otpCode) {
+      const isMatch = await user.comparePassword(password);
+      if (!isMatch) {
+        return res
+          .status(StatusCodes.UNAUTHORIZED)
+          .json({ msg: "Invalid credentials" });
+      }
+
+      const generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
+
+      user.twoFactorCode = generatedOtp;
+      user.twoFactorCodeExpires = Date.now() + 5 * 60 * 1000; // 5 minutes
+      await user.save();
+
+      await transporter.sendMail({
+        from: `"Barick Gold" <support@barickgold.com>`,
+        to: user.email,
+        subject: "Your 2FA Login Code",
+        text: `Your login code is: ${generatedOtp}. It expires in 5 minutes.`,
+      });
+
+      return res.status(StatusCodes.OK).json({
+        msg: "OTP sent to your email. Please verify to complete login.",
+      });
     }
 
-    const token = user.createJWT();
-    res.status(StatusCodes.OK).json({
-      user: {
-        id: user._id,
-        fullName: user.fullName,
-        email: user.email,
-        role: user.role,
-        accountBalance: user.accountBalance,
-        kycVerified: user.kycVerified,
-      },
-      token,
-    });
+    // STEP 2: If OTP is sent, we verify it and log in
+    if (otpCode && !password) {
+      if (
+        user.twoFactorCode !== otpCode ||
+        Date.now() > user.twoFactorCodeExpires
+      ) {
+        return res
+          .status(StatusCodes.UNAUTHORIZED)
+          .json({ msg: "Invalid or expired OTP code" });
+      }
+
+      user.twoFactorCode = undefined;
+      user.twoFactorCodeExpires = undefined;
+      await user.save();
+
+      const token = user.createJWT();
+
+      return res.status(StatusCodes.OK).json({
+        user: {
+          id: user._id,
+          fullName: user.fullName,
+          email: user.email,
+          role: user.role,
+          accountBalance: user.accountBalance,
+          kycVerified: user.kycVerified,
+        },
+        token,
+      });
+    }
+
+    return res
+      .status(StatusCodes.BAD_REQUEST)
+      .json({ msg: "Invalid request format" });
   } catch (error) {
-    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ msg: error.message });
+    res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ msg: error.message });
   }
 };
-
 // Get current user
 const getCurrentUser = async (req, res) => {
   try {
