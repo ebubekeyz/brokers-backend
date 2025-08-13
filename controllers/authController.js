@@ -24,9 +24,7 @@ const getAccountBalance = async (req, res) => {
   try {
     // Get all successful deposits
     const deposits = await Deposit.find({ user: userId, status: "approved" });
-   
     const totalFunded = deposits.reduce((acc, curr) => acc + curr.amount, 0);
-
 
     // Get all investments
     const investments = await Investment.find({ user: userId });
@@ -36,10 +34,13 @@ const getAccountBalance = async (req, res) => {
     // Get all approved withdrawals
     const withdraw = await Withdraw.find({ user: userId, status: "approved" });
     const totalWithdrawn = withdraw.reduce((acc, curr) => acc + curr.amount, 0);
-         
 
     // Calculate balance
     const balance = (totalFunded + totalProfit) - (totalInvested + totalWithdrawn);
+
+    // Calculate Profit/Loss and Percentage Change
+    const profitLoss = totalProfit; // If profit is already tracked separately
+    const pctChange = totalInvested > 0 ? (profitLoss / totalInvested) * 100 : 0;
 
     res.status(200).json({
       totalFunded,
@@ -47,6 +48,8 @@ const getAccountBalance = async (req, res) => {
       totalProfit,
       totalWithdrawn,
       balance,
+      profitLoss,
+      pctChange: parseFloat(pctChange.toFixed(2)), // 2 decimal places
     });
 
   } catch (error) {
