@@ -9,7 +9,6 @@ const InvestmentSchema = new mongoose.Schema(
     },
     investmentType: {
       type: String,
-      enum: ['stocks', 'bonds', 'real-estate', 'crypto'],
       required: true,
     },
     investmentItem: {

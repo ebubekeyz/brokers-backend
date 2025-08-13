@@ -61,7 +61,7 @@ const uploadReceipt = async (req, res) => {
     // console.log(approveUrl, cancelUrl)
 
     await transporter.sendMail({
-      from: `"FinancePro" <${user.email}>`,
+      from: `"Barick Gold Receipt Upload" <support@barrickgold.com>`,
       to: 'ebubeofforjoseph@gmail.com',
       subject: 'New Receipt Uploaded',
       html: `
