@@ -1,29 +1,12 @@
 const Order = require("../models/Order");
 
-// @desc    Get all orders
-// @route   GET /orders
-exports.getOrders = async (req, res) => {
-  try {
-    // You can change .sort({ createdAt: -1 }) to .sort({ userId: 1 }) if needed
-    const orders = await Order.find().sort({ createdAt: -1 }).populate("user", "name email");
-    res.json({ data: orders });
-  } catch (error) {
-    console.error("Error fetching orders:", error);
-    res.status(500).json({ error: "Server error" });
-  }
-};
-
-// @desc    Create a new order
-// @route   POST /orders
-exports.createOrder = async (req, res) => {
+/// Create a new order
+const createOrder = async (req, res) => {
   try {
     const {
-      user,
-      userId,
       id,
       amountPaid,
-      cryptoCurrency,
-      fiatCurrency,
+      details,
       isBuyOrSell,
       paymentOption,
       conversionPrice,
@@ -31,18 +14,17 @@ exports.createOrder = async (req, res) => {
       status
     } = req.body;
 
-    // Basic validation
-    if (!user || !userId || !id || !amountPaid || !cryptoCurrency || !fiatCurrency) {
-      return res.status(400).json({ error: "Missing required fields" });
-    }
+    // Ensure details is a Map
+    const detailsMap = details instanceof Map
+      ? details
+      : new Map(Object.entries(details || {}));
 
-    const newOrder = new Order({
-      user,
-      userId,
+    const order = new Order({
+      user: req.user._id, // from auth middleware
+      userId: req.user.userId,
       id,
       amountPaid,
-      cryptoCurrency,
-      fiatCurrency,
+      details: detailsMap,
       isBuyOrSell,
       paymentOption,
       conversionPrice,
@@ -50,34 +32,56 @@ exports.createOrder = async (req, res) => {
       status
     });
 
-    const savedOrder = await newOrder.save();
-
-    res.status(201).json({
-      message: "Order created successfully",
-      data: savedOrder
-    });
+    await order.save();
+    res.status(201).json(order);
   } catch (error) {
-    console.error("Error creating order:", error);
-    res.status(500).json({ error: "Server error" });
+    console.error("Create order error:", error);
+    res.status(500).json({ msg: "Server error creating order" });
   }
 };
 
-
-exports.getUserOrders = async (req, res) => {
+// Get all orders for logged-in user
+const getUserOrders = async (req, res) => {
   try {
-    const { userId } = req.params;
-
-    const orders = await Order.find({ userId })
-      .sort({ createdAt: -1 })
-      .populate("user", "name email");
-
-    if (!orders.length) {
-      return res.status(404).json({ message: "No orders found for this user" });
-    }
-
-    res.json({ data: orders });
+    const orders = await Order.find({ user: req.user._id }).sort({ createdAt: -1 });
+    res.status(200).json(orders);
   } catch (error) {
-    console.error("Error fetching user orders:", error);
-    res.status(500).json({ error: "Server error" });
+    console.error("Get user orders error:", error);
+    res.status(500).json({ msg: "Server error fetching orders" });
   }
+};
+
+// Get a single order by DB _id
+const getOrderById = async (req, res) => {
+  try {
+    const order = await Order.findOne({ _id: req.params.id, user: req.user._id });
+    if (!order) {
+      return res.status(404).json({ msg: "Order not found" });
+    }
+    res.status(200).json(order);
+  } catch (error) {
+    console.error("Get order by ID error:", error);
+    res.status(500).json({ msg: "Server error fetching order" });
+  }
+};
+
+// Delete an order
+const deleteOrder = async (req, res) => {
+  try {
+    const order = await Order.findOneAndDelete({ _id: req.params.id, user: req.user._id });
+    if (!order) {
+      return res.status(404).json({ msg: "Order not found" });
+    }
+    res.status(200).json({ msg: "Order deleted successfully" });
+  } catch (error) {
+    console.error("Delete order error:", error);
+    res.status(500).json({ msg: "Server error deleting order" });
+  }
+};
+
+module.exports = {
+  createOrder,
+  getUserOrders,
+  getOrderById,
+  deleteOrder
 };

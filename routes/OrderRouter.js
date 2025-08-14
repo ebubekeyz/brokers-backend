@@ -1,16 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const { getOrders, createOrder, getUserOrders } = require('../controllers/OrderController');
+const { getOrderById,, deleteOrder, createOrder, getUserOrders } = require('../controllers/OrderController');
 const auth = require('../middleware/authentication.js');
 
 
-// GET /orders
-router.get("/", auth, getOrders);
-
-
-// POST /orders - Create a new order
-router.post("/", createOrder);
-
-router.get("/user/:userId", auth, getUserOrders); // GET orders for a specific user
+router.post("/", auth, createOrder);
+router.get("/", auth, getUserOrders);
+router.get("/:id", auth, getOrderById);
+router.delete("/:id", auth, deleteOrder);
 
 module.exports = router;
