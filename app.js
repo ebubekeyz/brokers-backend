@@ -96,33 +96,23 @@ app.get("/order/:id", async (req, res) => {
 
 
 const API_KEY = process.env.TRANSAK_SANDBOX_API_KEY || "";
-const BASE_URL = "https://staging-api.transak.com/api/v2";
+const API_SECRET = process.env.TRANSAK_SANDBOX_API_SECRET;
 
 
-// async function getPartnerAuthToken() {
-//   const res = await axios.post(`${BASE_URL}/partners/get-auth-token`, {
-//     apiKey: TRANSAK_API_KEY,
-//   });
-//   return res.data.token;
-// }
 
-app.get("/api/transak/orders", async (req, res) => {
-   try {
-    // Get partner token
-    const authRes = await axios.post(`${BASE_URL}/partners/get-auth-token`, {
-      apiKey: API_KEY,
+app.get("/orders", async (req, res) => {
+  try {
+    const r = await fetch("https://api-staging.transak.com/api/v2/orders", {
+      headers: {
+        "apiKey": API_KEY,
+        "secret": API_SECRET,
+      },
     });
-    const token = authRes.data.token;
-
-    // Fetch orders
-    const ordersRes = await axios.get(`${BASE_URL}/orders`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
-    res.json(ordersRes.data);
-  } catch (error) {
-    console.error(error.response?.data || error.message);
-    res.status(500).json(error.response?.data || { message: error.message });
+    const data = await r.json();
+    res.json(data);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch orders" });
   }
 });
 
