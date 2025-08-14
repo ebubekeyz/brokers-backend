@@ -3,6 +3,10 @@ require('express-async-errors');
 
 const connectDB = require('./db/connect.js');
 
+
+
+
+
 const express = require('express');
 const app = express();
 
@@ -95,24 +99,73 @@ app.get("/order/:id", async (req, res) => {
 
 
 
-const API_KEY = process.env.TRANSAK_SANDBOX_API_KEY || "";
-const API_SECRET = process.env.TRANSAK_SANDBOX_API_SECRET;
 
 
 
+
+
+
+app.post("/postOrders", async (req, res) => {
+  try {
+    const response = await axios.post(
+      "https://api-stg.transak.com/partners/api/v2/refresh-token",
+      { apiKey: "199e0c9b-9315-4e82-a14d-8bca37d6d94e" },
+      {
+        headers: {
+          accept: "application/json",
+          "api-secret": "/91GDRzJ3PdNqp/afREiEQ==",
+          "content-type": "application/json",
+        },
+      }
+    );
+
+    console.log(response.data); // token response
+    res.json(response.data); // send back to client
+  } catch (err) {
+    if (err.response) {
+      console.error("API Error:", err.response.status, err.response.data);
+      res.status(err.response.status).json(err.response.data);
+    } else {
+      console.error("Request Error:", err.message);
+      res.status(500).json({ error: err.message });
+    }
+  }
+});
+
+
+
+
+
+	
 app.get("/orders", async (req, res) => {
   try {
-    const r = await fetch("https://api-staging.transak.com/api/v2/orders", {
-      headers: {
-        "apiKey": API_KEY,
-        "secret": API_SECRET,
-      },
-    });
-    const data = await r.json();
-    res.json(data);
+    const { data } = await axios.get(
+      "https://api-stg.transak.com/partners/api/v2/orders",
+      {
+        headers: {
+          accept: "application/json",
+          "access-token":
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJBUElfS0VZIjoiMTk5ZTBjOWItOTMxNS00ZTgyLWExNGQtOGJjYTM3ZDZkOTRlIiwiaWF0IjoxNzU1MTY1OTMzLCJleHAiOjE3NTU3NzA3MzN9.W4UjJBwT-Tb0K_goeto6Q-KbSl9bywS1tGM_7GNJ-Zk",
+        },
+      }
+    );
+
+    console.log(data); // Logs the API response
+    res.json(data); // Sends it back to the frontend
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Failed to fetch orders" });
+    if (err.response) {
+      console.error(
+        "Transak API Error:",
+        err.response.status,
+        err.response.data
+      );
+      res
+        .status(err.response.status)
+        .json({ error: err.response.data });
+    } else {
+      console.error("Server error:", err.message);
+      res.status(500).json({ error: "Failed to fetch orders" });
+    }
   }
 });
 
