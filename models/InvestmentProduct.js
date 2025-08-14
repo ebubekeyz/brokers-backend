@@ -11,4 +11,4 @@ const InvestmentProductSchema = new mongoose.Schema({
   isActive: { type: Boolean, default: true },
   description: String
 });
-const InvestmentProduct = mongoose.model('InvestmentProduct', InvestmentProductSchema);
+module.exports= mongoose.model('InvestmentProduct', InvestmentProductSchema);

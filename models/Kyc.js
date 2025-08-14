@@ -12,4 +12,4 @@ const KYCSchema = new mongoose.Schema({
   submittedAt: Date,
   reviewedAt: Date
 });
-const KYC = mongoose.model('KYC', KYCSchema);
+module.exports = mongoose.model('KYC', KYCSchema);

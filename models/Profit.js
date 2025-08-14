@@ -7,4 +7,4 @@ const ProfitSchema = new mongoose.Schema({
   amount: Number,
   creditedAt: Date
 });
-const Profit = mongoose.model('Profit', ProfitSchema);
+module.exports = mongoose.model('Profit', ProfitSchema);

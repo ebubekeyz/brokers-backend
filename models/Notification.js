@@ -9,4 +9,4 @@ const NotificationSchema = new mongoose.Schema({
   isRead: { type: Boolean, default: false },
   createdAt: { type: Date, default: Date.now }
 });
-const Notification = mongoose.model('Notification', NotificationSchema);
+module.exports = mongoose.model('Notification', NotificationSchema);

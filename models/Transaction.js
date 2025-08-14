@@ -8,4 +8,4 @@ const TransactionSchema = new mongoose.Schema({
   method: String,
   receipt: String
 }, { timestamps: true });
-const Transaction = mongoose.model('Transaction', TransactionSchema);
+module.exports = mongoose.model('Transaction', TransactionSchema);

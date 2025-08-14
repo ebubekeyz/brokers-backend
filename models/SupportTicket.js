@@ -7,4 +7,4 @@ const SupportTicketSchema = new mongoose.Schema({
   status: { type: String, enum: ['open', 'closed', 'pending'], default: 'open' },
   reply: String
 }, { timestamps: true });
-const SupportTicket = mongoose.model('SupportTicket', SupportTicketSchema);
+module.exports = mongoose.model('SupportTicket', SupportTicketSchema);
