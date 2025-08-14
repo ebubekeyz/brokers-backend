@@ -138,10 +138,11 @@ app.post("/postOrders", async (req, res) => {
 
 
 	
-app.get("/api/orders", async (req, res) => {
+app.get(`/api/orders`, async (req, res) => {
+  const walletAddress = req.user.walletAddress || ''
   try {
     const { data } = await axios.get(
-      "https://api-stg.transak.com/partners/api/v2/orders",
+      "https://api-stg.transak.com/partners/api/v2/orders?filter[walletAddress]=${walletAddress}&limit=100&skip=0",
       {
         headers: {
           accept: "application/json",

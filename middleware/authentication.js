@@ -17,6 +17,7 @@ const auth = (req, res, next) => {
       role,
       email,
       fullName,
+      walletAddress,
       phone,
       kycVerified
  
@@ -27,6 +28,7 @@ const auth = (req, res, next) => {
       role,
       email,
       fullName,
+       walletAddress,
       phone,
       kycVerified
     };

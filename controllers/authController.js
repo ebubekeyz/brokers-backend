@@ -85,11 +85,13 @@ const getAccountBalance = async (req, res) => {
     const totalWithdrawn = withdraw.reduce((acc, curr) => acc + curr.amount, 0);
 
     // Get BUY orders and sum amountPaid
-    const buyOrders = await Order.find({ userId, isBuyOrSell: "BUY" });
+    const buyOrders = await Order.find({ user: userId, isBuyOrSell: "BUY" });
     const totalBuyOrders = buyOrders.reduce((acc, curr) => acc + curr.amountPaid, 0);
 
+    console.log()
+
     // Get SELL orders and sum amountPaid
-    const sellOrders = await Order.find({ userId, isBuyOrSell: "SELL" });
+    const sellOrders = await Order.find({ user: userId, isBuyOrSell: "SELL" });
     const totalSellOrders = sellOrders.reduce((acc, curr) => acc + curr.amountPaid, 0);
 
     // Calculate balance

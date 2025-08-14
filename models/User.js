@@ -21,6 +21,9 @@ const UserSchema = new mongoose.Schema(
     phone: {
       type: String,
     },
+    walletAddress: {
+      type: String,
+    },
     role: {
       type: String,
       enum: ["user", "admin", "broker"],
@@ -68,6 +71,7 @@ UserSchema.methods.createJWT = function () {
       role: this.role,
       email: this.email,
       phone: this.phone,
+      walletAddress: this .walletAddress,
       kycVerified: this.kycVerified,
       accountBalance: this.accountBalance,
     },
