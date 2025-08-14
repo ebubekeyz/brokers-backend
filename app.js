@@ -138,7 +138,7 @@ app.post("/postOrders", async (req, res) => {
 
 
 	
-app.get("/orders", async (req, res) => {
+app.get("/api/orders", async (req, res) => {
   try {
     const { data } = await axios.get(
       "https://api-stg.transak.com/partners/api/v2/orders",
