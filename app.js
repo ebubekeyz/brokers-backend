@@ -80,6 +80,7 @@ app.use('/api/settings', require('./routes/SettingsRouter'));
 app.use('/api/support-tickets', require('./routes/SupportTicketRouter'));
 app.use('/api/upload-receipt', require('./routes/UploadReceiptRouter'));
 app.use('/api/deposit', require('./routes/DepositRouter'));
+app.use('/api/cryptoOrders', require('./routes/OrderRouter'));
 
 app.get("/order/:id", async (req, res) => {
   try {

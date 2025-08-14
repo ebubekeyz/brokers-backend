@@ -17,6 +17,7 @@ const transporter = nodemailer.createTransport({
 const Deposit = require('../models/Deposit');
 const Investment = require('../models/Investment');
 const Withdraw =  require('../models/Withdraw');
+const Order =  require('../models/Order');
 
 const getAccountBalance = async (req, res) => {
   const userId = req.user.userId; // Assuming authentication middleware sets this
@@ -35,11 +36,21 @@ const getAccountBalance = async (req, res) => {
     const withdraw = await Withdraw.find({ user: userId, status: "approved" });
     const totalWithdrawn = withdraw.reduce((acc, curr) => acc + curr.amount, 0);
 
+    // Get BUY orders and sum amountPaid
+    const buyOrders = await Order.find({ userId, isBuyOrSell: "BUY" });
+    const totalBuyOrders = buyOrders.reduce((acc, curr) => acc + curr.amountPaid, 0);
+
+    // Get SELL orders and sum amountPaid
+    const sellOrders = await Order.find({ userId, isBuyOrSell: "SELL" });
+    const totalSellOrders = sellOrders.reduce((acc, curr) => acc + curr.amountPaid, 0);
+
     // Calculate balance
-    const balance = (totalFunded + totalProfit) - (totalInvested + totalWithdrawn);
+    const balance =
+      (totalFunded + totalProfit + totalSellOrders) -
+      (totalInvested + totalWithdrawn + totalBuyOrders);
 
     // Calculate Profit/Loss and Percentage Change
-    const profitLoss = totalProfit; // If profit is already tracked separately
+    const profitLoss = totalProfit;
     const pctChange = totalInvested > 0 ? (profitLoss / totalInvested) * 100 : 0;
 
     res.status(200).json({
@@ -47,9 +58,11 @@ const getAccountBalance = async (req, res) => {
       totalInvested,
       totalProfit,
       totalWithdrawn,
+      totalBuyOrders,
+      totalSellOrders,
       balance,
       profitLoss,
-      pctChange: parseFloat(pctChange.toFixed(2)), // 2 decimal places
+      pctChange: parseFloat(pctChange.toFixed(2)),
     });
 
   } catch (error) {
