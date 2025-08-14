@@ -19,6 +19,54 @@ const Investment = require('../models/Investment');
 const Withdraw =  require('../models/Withdraw');
 const Order =  require('../models/Order');
 
+
+
+
+// const getAccountBalance = async (req, res) => {
+//   const userId = req.user.userId; // Assuming authentication middleware sets this
+
+//   try {
+//     // Get all successful deposits
+//     const deposits = await Deposit.find({ user: userId, status: "approved" });
+//     const totalFunded = deposits.reduce((acc, curr) => acc + curr.amount, 0);
+
+//     // Get all investments
+//     const investments = await Investment.find({ user: userId });
+//     const totalInvested = investments.reduce((acc, curr) => acc + curr.amount, 0);
+//     const totalProfit = investments.reduce((acc, curr) => acc + (curr.profit || 0), 0);
+
+//     // Get all approved withdrawals
+//     const withdraw = await Withdraw.find({ user: userId, status: "approved" });
+//     const totalWithdrawn = withdraw.reduce((acc, curr) => acc + curr.amount, 0);
+
+//     // Get all orders and sum amountPaid
+//     const orders = await Order.find({ userId }); // or { user: userId } if linked to ObjectId
+//     const totalOrdersPaid = orders.reduce((acc, curr) => acc + curr.amountPaid, 0);
+
+//     // Calculate balance
+//     const balance = (totalFunded + totalProfit + totalOrdersPaid) - (totalInvested + totalWithdrawn);
+
+//     // Calculate Profit/Loss and Percentage Change
+//     const profitLoss = totalProfit; 
+//     const pctChange = totalInvested > 0 ? (profitLoss / totalInvested) * 100 : 0;
+
+//     res.status(200).json({
+//       totalFunded,
+//       totalInvested,
+//       totalProfit,
+//       totalWithdrawn,
+//       totalOrdersPaid,
+//       balance,
+//       profitLoss,
+//       pctChange: parseFloat(pctChange.toFixed(2)),
+//     });
+
+//   } catch (error) {
+//     console.error("Balance error", error);
+//     res.status(500).json({ msg: "Server error while calculating balance" });
+//   }
+// };
+
 const getAccountBalance = async (req, res) => {
   const userId = req.user.userId; // Assuming authentication middleware sets this
 
