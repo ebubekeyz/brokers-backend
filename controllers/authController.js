@@ -2,7 +2,10 @@ const User = require('../models/User');
 const { StatusCodes } = require('http-status-codes');
 const nodemailer = require('nodemailer');
 
-
+const Deposit = require('../models/Deposit');
+const Investment = require('../models/Investment');
+const Withdraw =  require('../models/Withdraw');
+const Order =  require('../models/Order');
 
 // Nodemailer setup
 const transporter = nodemailer.createTransport({
@@ -14,10 +17,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-const Deposit = require('../models/Deposit');
-const Investment = require('../models/Investment');
-const Withdraw =  require('../models/Withdraw');
-const Order =  require('../models/Order');
+
 
 
 
