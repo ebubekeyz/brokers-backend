@@ -321,7 +321,7 @@ const deleteUser = async (req, res) => {
     await Promise.all([
       Withdraw.deleteMany({ user: id }),
       Investment.deleteMany({ user: id }),
-      Deposit.deleteMany({ user: id })
+      Deposit.deleteMany({ user: id }),
       Order.deleteMany({ user: id })
     ]);
 
