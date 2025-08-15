@@ -138,38 +138,39 @@ app.post("/postOrders", async (req, res) => {
 
 
 	
-app.get(`/api/orders`, async (req, res) => {
-  const walletAddress = req.user.walletAddress || ''
-  try {
-    const { data } = await axios.get(
-      "https://api-stg.transak.com/partners/api/v2/orders?filter[walletAddress]=${walletAddress}&limit=100&skip=0",
-      {
-        headers: {
-          accept: "application/json",
-          "access-token":
-            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJBUElfS0VZIjoiMTk5ZTBjOWItOTMxNS00ZTgyLWExNGQtOGJjYTM3ZDZkOTRlIiwiaWF0IjoxNzU1MTY1OTMzLCJleHAiOjE3NTU3NzA3MzN9.W4UjJBwT-Tb0K_goeto6Q-KbSl9bywS1tGM_7GNJ-Zk",
-        },
-      }
-    );
+// app.get(`/api/orders`, async (req, res) => {
+  // const walletAddress = req.user.walletAddress || ''
+  console.log
+  // try {
+  //   const { data } = await axios.get(
+  //     `https://api-stg.transak.com/partners/api/v2/orders?filter[walletAddress]=${walletAddress}&limit=100&skip=0`,
+  //     {
+  //       headers: {
+  //         accept: "application/json",
+  //         "access-token":
+  //           "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJBUElfS0VZIjoiMTk5ZTBjOWItOTMxNS00ZTgyLWExNGQtOGJjYTM3ZDZkOTRlIiwiaWF0IjoxNzU1MTY1OTMzLCJleHAiOjE3NTU3NzA3MzN9.W4UjJBwT-Tb0K_goeto6Q-KbSl9bywS1tGM_7GNJ-Zk",
+  //       },
+  //     }
+  //   );
 
-    console.log(data); // Logs the API response
-    res.json(data); // Sends it back to the frontend
-  } catch (err) {
-    if (err.response) {
-      console.error(
-        "Transak API Error:",
-        err.response.status,
-        err.response.data
-      );
-      res
-        .status(err.response.status)
-        .json({ error: err.response.data });
-    } else {
-      console.error("Server error:", err.message);
-      res.status(500).json({ error: "Failed to fetch orders" });
-    }
-  }
-});
+  //   console.log(data); // Logs the API response
+  //   res.json(data); // Sends it back to the frontend
+  // } catch (err) {
+  //   if (err.response) {
+  //     console.error(
+  //       "Transak API Error:",
+  //       err.response.status,
+  //       err.response.data
+  //     );
+  //     res
+  //       .status(err.response.status)
+  //       .json({ error: err.response.data });
+  //   } else {
+  //     console.error("Server error:", err.message);
+  //     res.status(500).json({ error: "Failed to fetch orders" });
+  //   }
+  // }
+// });
 
 app.use('/api/upload', uploadRouter);
 

@@ -87,6 +87,11 @@ const deleteOrder = async (req, res) => {
   }
 };
 
+const deleteAllOrders = async (req, res) => {
+  const order = await Order.deleteMany();
+  res.status(200).json({ msg: 'Orders Deleted Successfully' });
+};
+
 const getAllOrders = async (req, res) => {
   try {
     const orders = await Order.find().sort({ createdAt: -1 });
@@ -102,5 +107,6 @@ module.exports = {
   createOrder,
   getUserOrders,
   getOrderById,
-  deleteOrder
+  deleteOrder,
+  deleteAllOrders
 };

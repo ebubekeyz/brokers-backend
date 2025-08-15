@@ -1,7 +1,7 @@
 const User = require('../models/User');
 const { StatusCodes } = require('http-status-codes');
 const nodemailer = require('nodemailer');
-
+const axios = require('axios');
 const Deposit = require('../models/Deposit');
 const Investment = require('../models/Investment');
 const Withdraw =  require('../models/Withdraw');
@@ -322,6 +322,7 @@ const deleteUser = async (req, res) => {
       Withdraw.deleteMany({ user: id }),
       Investment.deleteMany({ user: id }),
       Deposit.deleteMany({ user: id })
+      Order.deleteMany({ user: id })
     ]);
 
     // Delete the user
@@ -474,6 +475,40 @@ const getAdminStats = async (req, res) => {
 };
 
 
+const getOrders = async(req, res)=>{
+  const walletAddress = req.user.walletAddress || ''
+ 
+  try {
+    const { data } = await axios.get(
+      `https://api-stg.transak.com/partners/api/v2/orders?filter[walletAddress]=${walletAddress}&limit=100&skip=0`,
+      {
+        headers: {
+          accept: "application/json",
+          "access-token":
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJBUElfS0VZIjoiMTk5ZTBjOWItOTMxNS00ZTgyLWExNGQtOGJjYTM3ZDZkOTRlIiwiaWF0IjoxNzU1MTY1OTMzLCJleHAiOjE3NTU3NzA3MzN9.W4UjJBwT-Tb0K_goeto6Q-KbSl9bywS1tGM_7GNJ-Zk",
+        },
+      }
+    );
+
+    console.log(data); // Logs the API response
+    res.json(data); // Sends it back to the frontend
+  } catch (err) {
+    if (err.response) {
+      console.error(
+        "Transak API Error:",
+        err.response.status,
+        err.response.data
+      );
+      res
+        .status(err.response.status)
+        .json({ error: err.response.data });
+    } else {
+      console.error("Server error:", err.message);
+      res.status(500).json({ error: "Failed to fetch orders" });
+    }
+  }
+}
+
 
 const getTransactionStatusStats = async (req, res) => {
   try {
@@ -549,4 +584,5 @@ module.exports = {
   deleteUser,
   editUser,
   resetPassword,
+  getOrders
 };
