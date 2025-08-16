@@ -11,12 +11,13 @@ const createOrder = async (req, res) => {
       isBuyOrSell,
       paymentOption,
       conversionPrice,
+      walletAddress,
       cryptoAmount,
       status
     } = req.body;
 
     // Check if order with same id already exists for this user
-    const existingOrder = await Order.findOne({ id, user: req.user.userId });
+    const existingOrder = await Order.findOne({ id, walletAddress: req.user.walletAddress });
     if (existingOrder) {
       return res.status(400).json({ msg: "Order with this ID already exists" });
     }
@@ -33,6 +34,7 @@ const createOrder = async (req, res) => {
       amountPaid,
       details: detailsMap,
       isBuyOrSell,
+      walletAddress,
       paymentOption,
       conversionPrice,
       cryptoAmount,
@@ -51,7 +53,7 @@ const createOrder = async (req, res) => {
 // Get all orders for logged-in user
 const getUserOrders = async (req, res) => {
   try {
-    const orders = await Order.find({ user: req.user.userId }).sort({ createdAt: -1 });
+    const orders = await Order.find({ walletAddress: req.user.walletAddress}).sort({ createdAt: -1 });
     res.status(200).json(orders);
   } catch (error) {
     console.error("Get user orders error:", error);
@@ -62,7 +64,7 @@ const getUserOrders = async (req, res) => {
 // Get a single order by DB _id
 const getOrderById = async (req, res) => {
   try {
-    const order = await Order.findOne({ _id: req.params.id, user: req.userId });
+    const order = await Order.findOne({ _id: req.params.id, walletAddress: req.user.walletAddress });
     if (!order) {
       return res.status(404).json({ msg: "Order not found" });
     }
@@ -76,7 +78,7 @@ const getOrderById = async (req, res) => {
 // Delete an order
 const deleteOrder = async (req, res) => {
   try {
-    const order = await Order.findOneAndDelete({ _id: req.params.id, user: req.user.userId });
+    const order = await Order.findOneAndDelete({ _id: req.params.id, walletAddress: req.user.walletAddress });
     if (!order) {
       return res.status(404).json({ msg: "Order not found" });
     }

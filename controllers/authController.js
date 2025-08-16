@@ -68,7 +68,7 @@ const transporter = nodemailer.createTransport({
 // };
 
 const getAccountBalance = async (req, res) => {
-  const userId = req.user.userId; // Assuming authentication middleware sets this
+  const { userId, walletAddress } = req.user; // Assuming authentication middleware sets this
 
   try {
     // Get all successful deposits
@@ -85,13 +85,13 @@ const getAccountBalance = async (req, res) => {
     const totalWithdrawn = withdraw.reduce((acc, curr) => acc + curr.amount, 0);
 
     // Get BUY orders and sum amountPaid
-    const buyOrders = await Order.find({ user: userId, isBuyOrSell: "BUY" });
+    const buyOrders = await Order.find({ walletAddress:walletAddress, isBuyOrSell: "BUY" });
     const totalBuyOrders = buyOrders.reduce((acc, curr) => acc + curr.amountPaid, 0);
 
     console.log()
 
     // Get SELL orders and sum amountPaid
-    const sellOrders = await Order.find({ user: userId, isBuyOrSell: "SELL" });
+    const sellOrders = await Order.find({ walletAddress:walletAddress, isBuyOrSell: "SELL" });
     const totalSellOrders = sellOrders.reduce((acc, curr) => acc + curr.amountPaid, 0);
 
     // Calculate balance
@@ -490,7 +490,6 @@ const getOrders = async(req, res)=>{
       }
     );
 
-    console.log(data); // Logs the API response
     res.json(data); // Sends it back to the frontend
   } catch (err) {
     if (err.response) {
