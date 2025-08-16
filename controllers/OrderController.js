@@ -12,6 +12,7 @@ const createOrder = async (req, res) => {
       paymentOption,
       conversionPrice,
       pair,
+      type,
       walletAddress,
       cryptoAmount,
       status
@@ -37,6 +38,7 @@ const createOrder = async (req, res) => {
       isBuyOrSell,
       walletAddress,
       pair,
+      type,
       paymentOption,
       conversionPrice,
       cryptoAmount,
