@@ -9,6 +9,7 @@ const OrderSchema = new mongoose.Schema({
   details: { type: Map, of: String }, // <- stores map-like data
   isBuyOrSell: { type: String, enum: ["BUY", "SELL"], required: true },
   paymentOption: { type: String },
+  pair:{type: string},
   walletAddress: { type: String },
   conversionPrice: { type: Number, required: true },
   cryptoAmount: { type: Number, required: true },
