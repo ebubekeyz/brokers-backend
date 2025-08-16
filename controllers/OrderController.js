@@ -17,7 +17,7 @@ const createOrder = async (req, res) => {
     } = req.body;
 
     // Check if order with same id already exists for this user
-    const existingOrder = await Order.findOne({ id, walletAddress: req.user.walletAddress });
+    const existingOrder = await Order.findOne({ id, user: req.user.userId });
     if (existingOrder) {
       return res.status(400).json({ msg: "Order with this ID already exists" });
     }
@@ -63,8 +63,9 @@ const getUserOrders = async (req, res) => {
 
 // Get a single order by DB _id
 const getOrderById = async (req, res) => {
+   const { id: orderId } = req.params;
   try {
-    const order = await Order.findOne({ _id: req.params.id, walletAddress: req.user.walletAddress });
+    const order = await Order.findOne({ _id:orderId });
     if (!order) {
       return res.status(404).json({ msg: "Order not found" });
     }
@@ -77,8 +78,9 @@ const getOrderById = async (req, res) => {
 
 // Delete an order
 const deleteOrder = async (req, res) => {
+   const { id: orderId } = req.params;
   try {
-    const order = await Order.findOneAndDelete({ _id: req.params.id, walletAddress: req.user.walletAddress });
+    const order = await Order.findOneAndDelete({ _id: orderId });
     if (!order) {
       return res.status(404).json({ msg: "Order not found" });
     }
