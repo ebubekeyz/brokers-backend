@@ -6,6 +6,15 @@ const Deposit = require('../models/Deposit');
 const Investment = require('../models/Investment');
 const Withdraw =  require('../models/Withdraw');
 const Order =  require('../models/Order');
+// const { MailerSend, EmailParams, Sender, Recipient } = require("mailersend")
+
+
+// const mailerSend = new MailerSend({
+//     apiKey: process.env.MAILERSEND_API_KEY,
+// });
+
+// const sentFrom = new Sender(process.env.MAILERSEND_FROM_EMAIL, process.env.MAILERSEND_FROM_NAME);
+
 
 // Nodemailer setup
 const transporter = nodemailer.createTransport({
@@ -77,6 +86,7 @@ const getAccountBalance = async (req, res) => {
 
     // Get all investments
     const investments = await Investment.find({ user: userId });
+   
     const totalInvested = investments.reduce((acc, curr) => acc + curr.amount, 0);
     const totalProfit = investments.reduce((acc, curr) => acc + (curr.profit || 0), 0);
 
@@ -96,8 +106,8 @@ const getAccountBalance = async (req, res) => {
 
     // Calculate balance
     const balance =
-      (totalFunded + totalProfit + totalSellOrders) -
-      (totalInvested + totalWithdrawn + totalBuyOrders);
+      (totalFunded + totalProfit ) -
+      (totalInvested + totalWithdrawn );
 
     // Calculate Profit/Loss and Percentage Change
     const profitLoss = totalProfit;
@@ -125,7 +135,9 @@ const getAccountBalance = async (req, res) => {
 // Register new user
 const register = async (req, res) => {
   try {
+       console.log(req.body)
     const user = await User.create(req.body);
+ 
     const token = user.createJWT();
     res.status(StatusCodes.CREATED).json({
       user: {
@@ -186,7 +198,22 @@ const login = async (req, res) => {
       return res.status(StatusCodes.OK).json({
         msg: "OTP sent to your email. Please verify to complete login.",
       });
-    }
+       }
+      
+//       const recipients = [
+//     new Recipient(`${user.email}`, `${user.email}`)
+// ];
+
+
+//       const emailParams = new EmailParams()
+//     .setFrom(sentFrom)
+//     .setTo(recipients)
+//     .setReplyTo(sentFrom)
+//     .setSubject("Your 2FA Login Code")
+//     // .setHtml("Greetings from the team, you got this message through MailerSend.")
+//     .setText(`Your login code is: ${generatedOtp}. It expires in 5 minutes.`);
+
+// await mailerSend.email.send(emailParams);
 
     // STEP 2: If OTP is sent, we verify it and log in
     if (otpCode && !password) {
@@ -523,15 +550,16 @@ const getTransactionStatusStats = async (req, res) => {
 
     // Helper to get the most recent transaction with user's full name and amount
     const getRecentTransaction = async (Model) => {
+     
       const recent = await Model.findOne({})
         .sort({ createdAt: -1 })
         .populate("user", "fullName") // assuming the `user` field is a ref to User model
         .select("amount user");
-
+ console.log(recent)
       return recent
         ? {
             fullName: recent.user?.fullName || "Unknown User",
-            amount: recent.amount,
+            amount: recent.amount || 0,
           }
         : null;
     };
@@ -540,9 +568,9 @@ const getTransactionStatusStats = async (req, res) => {
       depositStats,
       withdrawalStats,
       investmentStats,
-      recentDeposit,
-      recentWithdrawal,
-      recentInvestment,
+      // recentDeposit,
+      // recentWithdrawal,
+      // recentInvestment,
     ] = await Promise.all([
       getStatusCounts(Deposit),
       getStatusCounts(Withdraw),
@@ -558,11 +586,11 @@ const getTransactionStatusStats = async (req, res) => {
         deposits: depositStats,
         withdraw: withdrawalStats,
         investments: investmentStats,
-        recent: {
-          deposit: recentDeposit,
-          withdrawal: recentWithdrawal,
-          investment: recentInvestment,
-        },
+        // recent: {
+        //   deposit: recentDeposit,
+        //   withdrawal: recentWithdrawal,
+        //   investment: recentInvestment,
+        // },
       },
     });
   } catch (error) {

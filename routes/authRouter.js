@@ -32,7 +32,7 @@ router.get('/account/balance', auth, getAccountBalance);
 router.get('/me', auth, getCurrentUser);
 router.patch('/reset-password', auth, resetPassword);
 router.get('/single/:id', auth, getSingleUser);
-router.get('/', auth, getAllUsers); // optionally add admin check
+router.get('/', getAllUsers); // optionally add admin check
 router.delete('/:id', auth, deleteUser);
 router.put('/:id', auth, editUser);
 
