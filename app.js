@@ -39,11 +39,22 @@ const helmet = require('helmet');
 //     ? 'http://localhost:5173'
 //     : 'https://pledgebank-inc.com';
 
-let originUrl =
-  process.env.NODE_ENV !== 'production'
-    ? 'http://localhost:5173'
-    : 'https://brokers-main.netlify.app';
+let allowedOrigins = [
+  "http://localhost:5173",
+  "https://brokers-main.netlify.app" ]
 
+  app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    methods: ["GET", "POST", "PUT", "DELETE","PATCH"],
+  })
+);
 
 app.use(
   helmet({
@@ -52,17 +63,8 @@ app.use(
 );
 app.use(xss())
 
-app.use(
-  cors({
-    origin: originUrl,
-  })
-);
 
-app.use(
-  helmet({
-    crossOriginResourcePolicy: false,
-  })
-);
+
 
 app.use(express.static('./public'));
 app.use(express.json());
