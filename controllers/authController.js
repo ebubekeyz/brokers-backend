@@ -6,8 +6,8 @@ const Deposit = require('../models/Deposit');
 const Investment = require('../models/Investment');
 const Withdraw =  require('../models/Withdraw');
 const Order =  require('../models/Order');
-import 'dotenv/config';
-import { MailerSend, EmailParams, Sender, Recipient } from "mailersend";
+require('dotenv/config');
+const { MailerSend, EmailParams, Sender, Recipient } =  require("mailersend");
 
 const mailerSend = new MailerSend({
   apiKey: process.env.MAILERSEND_API_KEY,
