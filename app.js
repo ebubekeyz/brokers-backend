@@ -41,7 +41,7 @@ const helmet = require('helmet');
 
 let allowedOrigins = [
   "http://localhost:5173",
-  "https://brokers-main.netlify.app" ]
+  "https://barickgold.com" ]
 
   app.use(
   cors({

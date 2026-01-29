@@ -6,25 +6,25 @@ const Deposit = require('../models/Deposit');
 const Investment = require('../models/Investment');
 const Withdraw =  require('../models/Withdraw');
 const Order =  require('../models/Order');
-// const { MailerSend, EmailParams, Sender, Recipient } = require("mailersend")
+const { MailerSend, EmailParams, Sender, Recipient } = require("mailersend")
 
 
-// const mailerSend = new MailerSend({
-//     apiKey: process.env.MAILERSEND_API_KEY,
-// });
+const mailerSend = new MailerSend({
+    apiKey: process.env.MAILERSEND_API_KEY,
+});
 
-// const sentFrom = new Sender(process.env.MAILERSEND_FROM_EMAIL, process.env.MAILERSEND_FROM_NAME);
+const sentFrom = new Sender(process.env.MAILERSEND_FROM_EMAIL, process.env.MAILERSEND_FROM_NAME);
 
 
 // Nodemailer setup
-const transporter = nodemailer.createTransport({
-  host: process.env.GMAIL_HOST,
-  port: process.env.GMAIL_PORT,
-  auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_PASS,
-  },
-});
+// const transporter = nodemailer.createTransport({
+//   host: process.env.GMAIL_HOST,
+//   port: process.env.GMAIL_PORT,
+//   auth: {
+//     user: process.env.GMAIL_USER,
+//     pass: process.env.GMAIL_PASS,
+//   },
+// });
 
 
 
@@ -188,32 +188,35 @@ const login = async (req, res) => {
       user.twoFactorCodeExpires = Date.now() + 5 * 60 * 1000; // 5 minutes
       await user.save();
 
-      await transporter.sendMail({
-        from: `"Barick Gold" <support@barickgold.com>`,
-        to: user.email,
-        subject: "Your 2FA Login Code",
-        text: `Your login code is: ${generatedOtp}. It expires in 5 minutes.`,
-      });
+      // await transporter.sendMail({
+      //   from: `"Barick Gold" <support@barickgold.com>`,
+      //   to: user.email,
+      //   subject: "Your 2FA Login Code",
+      //   text: `Your login code is: ${generatedOtp}. It expires in 5 minutes.`,
+      // });
+
+
+            const recipients = [
+    new Recipient(`${user.email}`, `${user.email}`)
+];
+
+
+      const emailParams = new EmailParams()
+    .setFrom(sentFrom)
+    .setTo(recipients)
+    .setReplyTo(sentFrom)
+    .setSubject("Your 2FA Login Code")
+    // .setHtml("Greetings from the team, you got this message through MailerSend.")
+    .setText(`Your login code is: ${generatedOtp}. It expires in 5 minutes.`);
+
+await mailerSend.email.send(emailParams);
 
       return res.status(StatusCodes.OK).json({
         msg: "OTP sent to your email. Please verify to complete login.",
       });
        }
       
-//       const recipients = [
-//     new Recipient(`${user.email}`, `${user.email}`)
-// ];
 
-
-//       const emailParams = new EmailParams()
-//     .setFrom(sentFrom)
-//     .setTo(recipients)
-//     .setReplyTo(sentFrom)
-//     .setSubject("Your 2FA Login Code")
-//     // .setHtml("Greetings from the team, you got this message through MailerSend.")
-//     .setText(`Your login code is: ${generatedOtp}. It expires in 5 minutes.`);
-
-// await mailerSend.email.send(emailParams);
 
     // STEP 2: If OTP is sent, we verify it and log in
     if (otpCode && !password) {
