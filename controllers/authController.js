@@ -10,7 +10,7 @@ import 'dotenv/config';
 import { MailerSend, EmailParams, Sender, Recipient } from "mailersend";
 
 const mailerSend = new MailerSend({
-  apiKey: process.env.API_KEY,
+  apiKey: process.env.MAILERSEND_API_KEY,
 });
 
 const sentFrom = new Sender(`${process.env.MAILERSEND_FROM_EMAIL}`, "Barickgold");
