@@ -202,19 +202,17 @@ const login = async (req, res) => {
 ];
 
 
-const emailParams = new EmailParams()
-  .setFrom(sentFrom)
-  .setTo(recipients)
-  .setSubject("Your 2FA Login Code")
-  // .setHtml("<strong>This is the HTML content</strong>")
- .setText(`Your login code is: ${generatedOtp}. It expires in 5 minutes.`);
+try {
+  const emailParams = new EmailParams()
+    .setFrom(sentFrom)
+    .setTo([new Recipient(user.email, user.fullName)])
+    .setSubject("Your 2FA Login Code")
+    .setText(`Your login code is: ${generatedOtp}. It expires in 5 minutes.`);
 
-mailerSend.email
-  .send(emailParams)
-  .then((response) => console.log(response))
-  .catch((error) => console.log(error));
-
-         
+  await mailerSend.email.send(emailParams);
+} catch (err) {
+  console.error("MailerSend error:", err);
+}
     
 
       return res.status(StatusCodes.OK).json({
