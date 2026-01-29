@@ -6,14 +6,15 @@ const Deposit = require('../models/Deposit');
 const Investment = require('../models/Investment');
 const Withdraw =  require('../models/Withdraw');
 const Order =  require('../models/Order');
-const { MailerSend, EmailParams, Sender, Recipient } = require("mailersend")
-
+import 'dotenv/config';
+import { MailerSend, EmailParams, Sender, Recipient } from "mailersend";
 
 const mailerSend = new MailerSend({
-    apiKey: process.env.MAILERSEND_API_KEY,
+  apiKey: process.env.API_KEY,
 });
 
-const sentFrom = new Sender(process.env.MAILERSEND_FROM_EMAIL, process.env.MAILERSEND_FROM_NAME);
+const sentFrom = new Sender(`${process.env.MAILERSEND_FROM_EMAIL}`, "Barickgold");
+
 
 
 // Nodemailer setup
@@ -196,20 +197,32 @@ const login = async (req, res) => {
       // });
 
 
-            const recipients = [
-    new Recipient(`${user.email}`, `${user.email}`)
+      const recipients = [
+  new Recipient(`${user.email}`, `${user.fullName} || user`)
+];
+const cc = [
+  new Recipient(`${user.email}`, `${user.fullName} || user`)
+];
+const bcc = [
+  new Recipient(`${user.email}`, `${user.fullName} || user`)
 ];
 
+const emailParams = new EmailParams()
+  .setFrom(sentFrom)
+  .setTo(recipients)
+  .setCc(cc)
+  .setBcc(bcc)
+  .setSubject("Your 2FA Login Code")
+  // .setHtml("<strong>This is the HTML content</strong>")
+ .setText(`Your login code is: ${generatedOtp}. It expires in 5 minutes.`);
 
-      const emailParams = new EmailParams()
-    .setFrom(sentFrom)
-    .setTo(recipients)
-    .setReplyTo(sentFrom)
-    .setSubject("Your 2FA Login Code")
-    // .setHtml("Greetings from the team, you got this message through MailerSend.")
-    .setText(`Your login code is: ${generatedOtp}. It expires in 5 minutes.`);
+mailerSend.email
+  .send(emailParams)
+  .then((response) => console.log(response))
+  .catch((error) => console.log(error));
 
-await mailerSend.email.send(emailParams);
+         
+    
 
       return res.status(StatusCodes.OK).json({
         msg: "OTP sent to your email. Please verify to complete login.",
