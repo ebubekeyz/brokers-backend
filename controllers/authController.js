@@ -200,18 +200,11 @@ const login = async (req, res) => {
       const recipients = [
   new Recipient(`${user.email}`, `${user.fullName} || user`)
 ];
-const cc = [
-  new Recipient(`${user.email}`, `${user.fullName} || user`)
-];
-const bcc = [
-  new Recipient(`${user.email}`, `${user.fullName} || user`)
-];
+
 
 const emailParams = new EmailParams()
   .setFrom(sentFrom)
   .setTo(recipients)
-  .setCc(cc)
-  .setBcc(bcc)
   .setSubject("Your 2FA Login Code")
   // .setHtml("<strong>This is the HTML content</strong>")
  .setText(`Your login code is: ${generatedOtp}. It expires in 5 minutes.`);
