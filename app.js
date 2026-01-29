@@ -44,16 +44,7 @@ let allowedOrigins = [
   "https://barickgold.com" ]
 
   app.use(
-  cors({
-    origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    methods: ["GET", "POST", "PUT", "DELETE","PATCH"],
-  })
+  cors()
 );
 
 app.use(
