@@ -40,7 +40,7 @@ const uploadReceipt = async (req, res) => {
     const image = req.files.image;
     const result = await cloudinary.uploader.upload(image.tempFilePath, {
       use_filename: true,
-      folder: 'brokers',
+      folder: 'barickgold',
     });
     fs.unlinkSync(image.tempFilePath);
 

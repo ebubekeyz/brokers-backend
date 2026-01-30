@@ -15,7 +15,7 @@ const upload = async (req, res) => {
     req.files.image.tempFilePath,
     {
       use_filename: true,
-      folder: 'brokers',
+      folder: 'barickgold',
     }
   );
 
