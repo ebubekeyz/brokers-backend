@@ -2,27 +2,32 @@ const UploadReceipt = require('../models/UploadReceipt');
 const { StatusCodes } = require('http-status-codes');
 const fs = require('fs');
 const cloudinary = require('cloudinary').v2;
-const nodemailer = require('nodemailer');
+const sgMail = require('@sendgrid/mail')
+sgMail.setApiKey(process.env.SENDGRID_API_KEY)
+
 
 let originUrl =
   process.env.NODE_ENV !== 'production'
     ? 'http://localhost:5173/api/approve'
-        : 'https://brokers-real.netlify.app/approve';
+        : 'https://barickgold.com/approve';
     
     let originUrl2 =
   process.env.NODE_ENV !== 'production'
     ? 'http://localhost:5173/api/delete'
-    : 'https://brokers-real.netlify.app/delete';
+    : 'https://barickgold.com/delete';
 
     
-const transporter = nodemailer.createTransport({
-  host: process.env.GMAIL_HOST,
-  port: process.env.GMAIL_PORT,
-  auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_PASS,
-  },
-});
+// const transporter = nodemailer.createTransport({
+//   host: process.env.GMAIL_HOST,
+//   port: process.env.GMAIL_PORT,
+//   auth: {
+//     user: process.env.GMAIL_USER,
+//     pass: process.env.GMAIL_PASS,
+//   },
+// });
+
+
+
 
 // Utility to generate unique transactionId
 const generateTransactionId = () => {
@@ -54,26 +59,53 @@ const uploadReceipt = async (req, res) => {
     });
 
    
-    const approveUrl = `https://brokers-real.netlify.app/approve/${receipt._id}`;
-    const cancelUrl = `https://brokers-real.netlify.app/delete/${receipt._id}`;
+    const approveUrl = `https://barickgold.com/approve/${receipt._id}`;
+    const cancelUrl = `https://barickgold.com/delete/${receipt._id}`;
 
 
     // console.log(approveUrl, cancelUrl)
 
-    await transporter.sendMail({
-      from: `"Barick Gold Receipt Upload" <support@barrickgold.com>`,
-      to: 'ebubeofforjoseph@gmail.com',
-      subject: 'New Receipt Uploaded',
-      html: `
-        <p><strong>User:</strong> ${user.fullName} (${user.email})</p>
-        <p><strong>Transaction ID:</strong> ${receipt.transactionId}</p>
+    // await transporter.sendMail({
+    //   from: `"Barick Gold Receipt Upload" <support@barrickgold.com>`,
+    //   to: 'ebubeofforjoseph@gmail.com',
+    //   subject: 'New Receipt Uploaded',
+    //   html: `
+    //     <p><strong>User:</strong> ${user.fullName} (${user.email})</p>
+    //     <p><strong>Transaction ID:</strong> ${receipt.transactionId}</p>
+    //     <img src="${result.secure_url}" width="300"/>
+    //     <p>
+    //       <a href="${approveUrl}" style="background:#28a745;color:#fff;padding:10px 20px;text-decoration:none;">Approve</a>
+    //       <a href="${cancelUrl}" style="background:#dc3545;color:#fff;padding:10px 20px;text-decoration:none;margin-left:10px;">Cancel</a>
+    //     </p>
+    //   `,
+    // });
+
+     const msg = {
+            to: `barickdmn@gmail.com`, // Change to your recipient
+            from: 'support@barickgold.com', // Change to your verified sender
+            subject: 'New Receipt Uploaded',
+       html: ` <p><strong>User:</strong> ${user.fullName} (${user.email})</p>
+           <p>
+       <strong>Transaction ID:</strong> ${receipt.transactionId}
+       </p>
         <img src="${result.secure_url}" width="300"/>
         <p>
           <a href="${approveUrl}" style="background:#28a745;color:#fff;padding:10px 20px;text-decoration:none;">Approve</a>
           <a href="${cancelUrl}" style="background:#dc3545;color:#fff;padding:10px 20px;text-decoration:none;margin-left:10px;">Cancel</a>
         </p>
       `,
-    });
+               }
+               
+               sgMail
+            .send(msg)
+            .then(() => {
+              console.log('Email sent')
+            })
+            .catch((error) => {
+              console.error(error)
+            })
+               
+            
 
     res.status(StatusCodes.CREATED).json({ msg: 'Receipt uploaded successfully', receipt });
   } catch (error) {
