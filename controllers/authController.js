@@ -5,7 +5,9 @@ const axios = require('axios');
 const Deposit = require('../models/Deposit');
 const Investment = require('../models/Investment');
 const Withdraw =  require('../models/Withdraw');
-const Order =  require('../models/Order');
+const Order = require('../models/Order');
+const sgMail = require('@sendgrid/mail')
+sgMail.setApiKey(process.env.SENDGRID_API_KEY)
 // require('dotenv/config');
 // const { MailerSend, EmailParams, Sender, Recipient } =  require("mailersend");
 
@@ -17,15 +19,15 @@ const Order =  require('../models/Order');
 
 
 
-Nodemailer setup
-const transporter = nodemailer.createTransport({
-  host: process.env.GMAIL_HOST,
-  port: process.env.GMAIL_PORT,
-  auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_PASS,
-  },
-});
+// Nodemailer setup
+// const transporter = nodemailer.createTransport({
+//   host: process.env.GMAIL_HOST,
+//   port: process.env.GMAIL_PORT,
+//   auth: {
+//     user: process.env.GMAIL_USER,
+//     pass: process.env.GMAIL_PASS,
+//   },
+// });
 
 
 
@@ -189,12 +191,30 @@ const login = async (req, res) => {
       user.twoFactorCodeExpires = Date.now() + 5 * 60 * 1000; // 5 minutes
       await user.save();
 
-      await transporter.sendMail({
-        from: `"Barick Gold" <support@barickgold.com>`,
-        to: user.email,
-        subject: "Your 2FA Login Code",
-        text: `Your login code is: ${generatedOtp}. It expires in 5 minutes.`,
-      });
+        const msg = {
+        to: `${user.email}`, // Change to your recipient
+        from: 'support@barickgold.com', // Change to your verified sender
+        subject: 'Your 2FA Login Code',
+       text:  `Your login code is: ${generatedOtp}. It expires in 5 minutes.`,
+           }
+           
+           sgMail
+        .send(msg)
+        .then(() => {
+          console.log('Email sent')
+        })
+        .catch((error) => {
+          console.error(error)
+        })
+           
+        
+
+      // await transporter.sendMail({
+      //   from: `"Barick Gold" <support@barickgold.com>`,
+      //   to: user.email,
+      //   subject: "Your 2FA Login Code",
+      //   text: `Your login code is: ${generatedOtp}. It expires in 5 minutes.`,
+      // });
 
 
 
