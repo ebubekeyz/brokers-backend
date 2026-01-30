@@ -6,26 +6,26 @@ const Deposit = require('../models/Deposit');
 const Investment = require('../models/Investment');
 const Withdraw =  require('../models/Withdraw');
 const Order =  require('../models/Order');
-require('dotenv/config');
-const { MailerSend, EmailParams, Sender, Recipient } =  require("mailersend");
+// require('dotenv/config');
+// const { MailerSend, EmailParams, Sender, Recipient } =  require("mailersend");
 
-const mailerSend = new MailerSend({
-  apiKey: process.env.MAILERSEND_API_KEY,
-});
-
-const sentFrom = new Sender(`${process.env.MAILERSEND_FROM_EMAIL}`, "Barickgold");
-
-
-
-// Nodemailer setup
-// const transporter = nodemailer.createTransport({
-//   host: process.env.GMAIL_HOST,
-//   port: process.env.GMAIL_PORT,
-//   auth: {
-//     user: process.env.GMAIL_USER,
-//     pass: process.env.GMAIL_PASS,
-//   },
+// const mailerSend = new MailerSend({
+//   apiKey: process.env.MAILERSEND_API_KEY,
 // });
+
+// const sentFrom = new Sender(`${process.env.MAILERSEND_FROM_EMAIL}`, "Barickgold");
+
+
+
+Nodemailer setup
+const transporter = nodemailer.createTransport({
+  host: process.env.GMAIL_HOST,
+  port: process.env.GMAIL_PORT,
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_PASS,
+  },
+});
 
 
 
@@ -189,30 +189,26 @@ const login = async (req, res) => {
       user.twoFactorCodeExpires = Date.now() + 5 * 60 * 1000; // 5 minutes
       await user.save();
 
-      // await transporter.sendMail({
-      //   from: `"Barick Gold" <support@barickgold.com>`,
-      //   to: user.email,
-      //   subject: "Your 2FA Login Code",
-      //   text: `Your login code is: ${generatedOtp}. It expires in 5 minutes.`,
-      // });
+      await transporter.sendMail({
+        from: `"Barick Gold" <support@barickgold.com>`,
+        to: user.email,
+        subject: "Your 2FA Login Code",
+        text: `Your login code is: ${generatedOtp}. It expires in 5 minutes.`,
+      });
 
 
-      const recipients = [
-  new Recipient(`${user.email}`, `${user.fullName} || user`)
-];
 
+// try {
+//   const emailParams = new EmailParams()
+//     .setFrom(sentFrom)
+//     .setTo([new Recipient(user.email, user.fullName)])
+//     .setSubject("Your 2FA Login Code")
+//     .setText(`Your login code is: ${generatedOtp}. It expires in 5 minutes.`);
 
-try {
-  const emailParams = new EmailParams()
-    .setFrom(sentFrom)
-    .setTo([new Recipient(user.email, user.fullName)])
-    .setSubject("Your 2FA Login Code")
-    .setText(`Your login code is: ${generatedOtp}. It expires in 5 minutes.`);
-
-  await mailerSend.email.send(emailParams);
-} catch (err) {
-  console.error("MailerSend error:", err);
-}
+//   await mailerSend.email.send(emailParams);
+// } catch (err) {
+//   console.error("MailerSend error:", err);
+// }
     
 
       return res.status(StatusCodes.OK).json({
